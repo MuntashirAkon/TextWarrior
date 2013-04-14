@@ -1,7 +1,7 @@
 package org.openintents.filemanager;
 
 import java.util.List;
-/* 
+/*
  * @author Tah Wei Hoon
  * @date 30 Dec 2010
  *
@@ -12,11 +12,11 @@ import java.util.List;
  */
 
 public class DirectoryContents {
-    List<IconifiedText> listDir;
-    List<IconifiedText> listFile;
-    List<IconifiedText> listSdCard;
+	List<IconifiedText> listDir;
+	List<IconifiedText> listFile;
+	List<IconifiedText> listSdCard;
 
-    public final List<IconifiedText> getListDir() {
+	public final List<IconifiedText> getListDir() {
 		return listDir;
 	}
 

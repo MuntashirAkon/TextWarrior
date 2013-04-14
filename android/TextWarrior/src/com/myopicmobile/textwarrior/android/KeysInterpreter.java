@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Tah Wei Hoon.
+ * Copyright (c) 2013 Tah Wei Hoon.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License Version 2.0,
  * with full text available at http://www.apache.org/licenses/LICENSE-2.0.html
@@ -8,7 +8,7 @@
  */
 package com.myopicmobile.textwarrior.android;
 
-import com.myopicmobile.textwarrior.common.LanguageCFamily;
+import com.myopicmobile.textwarrior.common.Language;
 
 import android.view.KeyEvent;
 
@@ -31,19 +31,19 @@ public class KeysInterpreter {
 	 * 	or Language.NULL_CHAR if the event does not represent a printable char
 	 */
 	public static char keyEventToPrintableChar(KeyEvent event){
-		char c = LanguageCFamily.NULL_CHAR;
+		char c = Language.NULL_CHAR;
 
     	// convert tab, backspace, newline and space keycodes to standard ASCII values
     	if (isNewline(event)){
-    		c = LanguageCFamily.NEWLINE;
+    		c = Language.NEWLINE;
         }
     	else if (isBackspace(event)){
-    		c = LanguageCFamily.BACKSPACE;
+    		c = Language.BACKSPACE;
         }
 		// This should be before the check for isSpace() because the
     	// shortcut for TAB uses the SPACE key.
     	else if (isTab(event)){
-    		c = LanguageCFamily.TAB;
+    		c = Language.TAB;
         }
     	else if (isSpace(event)){
     		c = ' ';

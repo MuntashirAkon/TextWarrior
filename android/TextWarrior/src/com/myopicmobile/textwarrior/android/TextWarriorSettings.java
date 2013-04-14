@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Tah Wei Hoon.
+ * Copyright (c) 2013 Tah Wei Hoon.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License Version 2.0,
  * with full text available at http://www.apache.org/licenses/LICENSE-2.0.html
@@ -9,13 +9,17 @@
 package com.myopicmobile.textwarrior.android;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.preference.ListPreference;
+import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.preference.PreferenceGroup;
 
 import com.myopicmobile.textwarrior.common.EncodingScheme;
+import com.myopicmobile.textwarrior.common.TextWarriorException;
 
 public class TextWarriorSettings extends PreferenceActivity {
 	@Override
@@ -39,6 +43,10 @@ public class TextWarriorSettings extends PreferenceActivity {
 		
 		if(!hasOrientationSensor()){
 			removeLiquidNavigationMenuOption();
+		}
+
+		if(!hasHardwareKeyboard()){
+			removeLongPressCapsOption();
 		}
 	}
 
@@ -67,5 +75,18 @@ public class TextWarriorSettings extends PreferenceActivity {
 		
 		navigationMethodPref.setEntryValues(trimmedEntryValues);
 		navigationMethodPref.setEntries(trimmedEntries);
+	}
+	
+	private boolean hasHardwareKeyboard() {
+		return getResources().getConfiguration().keyboard == Configuration.KEYBOARD_QWERTY;
+	}
+	
+	private void removeLongPressCapsOption() {
+		Preference p = findPreference(getString(R.string.settings_key_long_press_capitalize));
+		PreferenceGroup g = (PreferenceGroup) findPreference(getString(R.string.settings_group_formatting));
+		boolean success = g.removePreference(p);
+
+		TextWarriorException.assertVerbose(success,
+			"Did you remove the Long-press caps pref from the Formatting group?");
 	}
 }

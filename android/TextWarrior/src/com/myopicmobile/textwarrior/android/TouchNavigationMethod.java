@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Tah Wei Hoon.
+ * Copyright (c) 2013 Tah Wei Hoon.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License Version 2.0,
  * with full text available at http://www.apache.org/licenses/LICENSE-2.0.html
@@ -18,26 +18,28 @@ import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
+import com.myopicmobile.textwarrior.common.ColorScheme;
+
 //TODO minimise unnecessary invalidate calls
 /**
- * TouchNavigationMethod classes implementing their own carets have to override 
- * getCaretBloat() to return the size of the drawing area it needs, in excess of 
- * the bounding box of the character the caret is on, and use 
- * onTextDrawComplete(Canvas) to draw the caret. Currently, only a fixed size 
+ * TouchNavigationMethod classes implementing their own carets have to override
+ * getCaretBloat() to return the size of the drawing area it needs, in excess of
+ * the bounding box of the character the caret is on, and use
+ * onTextDrawComplete(Canvas) to draw the caret. Currently, only a fixed size
  * caret is allowed, but scalable carets may be implemented in future.
  */
 public class TouchNavigationMethod extends GestureDetector.SimpleOnGestureListener{
 	protected FreeScrollingTextField _textField;
 	private GestureDetector _gestureDetector;
 	protected boolean _isCaretTouched = false;
-	
+
 	public TouchNavigationMethod(FreeScrollingTextField textField){
 		_textField = textField;
 		_gestureDetector = new GestureDetector(textField.getContext(), this);
 		_gestureDetector.setIsLongpressEnabled(false);
 	}
 
-	
+
 	@Override
 	public boolean onDown(MotionEvent e) {
 		int x = screenToViewX((int) e.getX());
@@ -59,11 +61,11 @@ public class TouchNavigationMethod extends GestureDetector.SimpleOnGestureListen
 				_isCaretTouched = true;
 			}
 		}
-		
+
 		if(_isCaretTouched){
 			_textField.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
 		}
-		
+
 		return true;
 	}
 
@@ -71,10 +73,10 @@ public class TouchNavigationMethod extends GestureDetector.SimpleOnGestureListen
 	 * Note that up events from a fling are NOT captured here.
 	 * Subclasses have to call super.onUp(MotionEvent) in their implementations
 	 * of onFling().
-	 * 
+	 *
 	 * Also, up events from non-primary pointers in a multi-touch situation are
 	 * not captured here.
-	 * 
+	 *
 	 * @param e
 	 * @return
 	 */
@@ -109,13 +111,13 @@ public class TouchNavigationMethod extends GestureDetector.SimpleOnGestureListen
 		if(!_textField.isSelectText() && isDragSelect()){
 			_textField.selectText(true);
 		}
-		
+
 		int x = (int) e.getX() - _textField.getPaddingLeft();
 		int y = (int) e.getY() - _textField.getPaddingTop();
 		boolean scrolled = false;
-		
+
 		// If the edges of the textField content area are touched, scroll in the
-		// corresponding direction. 
+		// corresponding direction.
 		if(x < SCROLL_EDGE_SLOP){
 			scrolled = _textField.autoScrollCaret(FreeScrollingTextField.SCROLL_LEFT);
 		}
@@ -128,7 +130,7 @@ public class TouchNavigationMethod extends GestureDetector.SimpleOnGestureListen
 		else if(y >= (_textField.getContentHeight() - SCROLL_EDGE_SLOP)){
 			scrolled = _textField.autoScrollCaret(FreeScrollingTextField.SCROLL_DOWN);
 		}
-		
+
 		if(!scrolled){
 			_textField.stopAutoScrollCaret();
 			int newCaretIndex = _textField.coordToCharIndex(
@@ -144,7 +146,7 @@ public class TouchNavigationMethod extends GestureDetector.SimpleOnGestureListen
 	private void scrollView(float distanceX, float distanceY) {
 		int newX = (int) distanceX + _textField.getScrollX();
 		int newY = (int) distanceY + _textField.getScrollY();
-		
+
 		// If scrollX and scrollY are somehow more than the recommended
 		// max scroll values, use them as the new maximum
 		// Also take into account the size of the caret,
@@ -174,7 +176,7 @@ public class TouchNavigationMethod extends GestureDetector.SimpleOnGestureListen
 		int x = screenToViewX((int) e.getX());
 		int y = screenToViewY((int) e.getY());
 		int charOffset = _textField.coordToCharIndex(x, y);
-		
+
 		if(_textField.isSelectText()){
 			int strictCharOffset = _textField.coordToCharIndexStrict(x, y);
 			if(_textField.inSelectionRange(strictCharOffset) ||
@@ -197,21 +199,21 @@ public class TouchNavigationMethod extends GestureDetector.SimpleOnGestureListen
 			SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(c);
 			boolean displayIME = pref.getBoolean(
 					c.getString(R.string.settings_key_auto_display_keyboard),
-					true);
+					c.getResources().getBoolean(R.bool.settings_auto_display_keyboard_default));
 			if(displayIME){
 				_textField.showIME(true);
 			}
 		}
 		return true;
 	}
-	
+
 	@Override
 	public boolean onDoubleTap(MotionEvent e) {
 		_isCaretTouched = true;
 		int x = screenToViewX((int) e.getX());
 		int y = screenToViewY((int) e.getY());
 		int charOffset = _textField.coordToCharIndex(x, y);
-		
+
 		if(_textField.isSelectText()){
 			if(_textField.inSelectionRange(charOffset)){
 				_textField.moveCaret(charOffset);
@@ -233,7 +235,7 @@ public class TouchNavigationMethod extends GestureDetector.SimpleOnGestureListen
 		}
 		return true;
 	}
-	
+
 	@Override
 	public boolean onDoubleTapEvent(MotionEvent e) {
 		if(_isCaretTouched && e.getAction() == MotionEvent.ACTION_MOVE){
@@ -265,15 +267,15 @@ public class TouchNavigationMethod extends GestureDetector.SimpleOnGestureListen
 		}
 		return handled;
 	}
-	
+
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		return false;
 	}
-	
+
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
 		return false;
 	}
-	
+
 	/**
 	 * Android lifecyle event. See {@link android.app.Activity#onPause()}.
 	 */
@@ -292,13 +294,22 @@ public class TouchNavigationMethod extends GestureDetector.SimpleOnGestureListen
 	 * Called by FreeScrollingTextField when it has finished drawing text.
 	 * Classes extending TouchNavigationMethod can use this to draw, for
 	 * example, a custom caret.
-	 * 
+	 *
 	 * The canvas includes padding in it.
-	 * 
+	 *
 	 * @param canvas
 	 */
 	public void onTextDrawComplete(Canvas canvas) {
 		// Do nothing. Basic caret drawing is handled by FreeScrollingTextField.
+	}
+
+	public void onColorSchemeChanged(ColorScheme colorScheme) {
+		// Do nothing. Derived classes can use this to change their graphic assets accordingly.
+	}
+
+	public void onChiralityChanged(boolean isRightHanded) {
+		// Do nothing. Derived classes can use this to change their input
+		// handling and graphic assets accordingly.
 	}
 
 	private final static Rect _caretBloat = new Rect(0, 0, 0, 0);
@@ -312,63 +323,66 @@ public class TouchNavigationMethod extends GestureDetector.SimpleOnGestureListen
 	public Rect getCaretBloat(){
 		return _caretBloat;
 	}
-	
+
 
 	//*********************************************************************
     //**************************** Utilities ******************************
     //*********************************************************************
-	
+
 	final protected int getPointerId(MotionEvent e){
 		return (e.getAction() & MotionEvent.ACTION_POINTER_ID_MASK)
 				>> MotionEvent.ACTION_POINTER_ID_SHIFT;
 	}
-	
+
 	/**
 	 * Converts a x-coordinate from screen coordinates to local coordinates,
 	 * excluding padding
-	 * 
+	 *
 	 */
 	final protected int screenToViewX(int x) {
 		return x - _textField.getPaddingLeft() + _textField.getScrollX();
 	}
-	
+
 	/**
 	 * Converts a y-coordinate from screen coordinates to local coordinates,
 	 * excluding padding
-	 * 
+	 *
 	 */
 	final protected int screenToViewY(int y) {
 		return y - _textField.getPaddingTop() + _textField.getScrollY();
 	}
-	
+
 	final public boolean isRightHanded(){
 		Context c = _textField.getContext();
 		String rhanded = c.getString(R.string.settings_chirality_right);
 		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(c);
 		String chirality = pref.getString(
-				c.getString(R.string.settings_key_chirality), rhanded);
-		
+				c.getString(R.string.settings_key_chirality),
+				c.getString(R.string.settings_chirality_default));
+
 		return chirality.equals(rhanded);
 	}
 
 	final private boolean isDragSelect(){
 		Context c = _textField.getContext();
 		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(c);
-		return pref.getBoolean( c.getString(R.string.settings_key_drag_select), true);
+		return pref.getBoolean( c.getString(R.string.settings_key_drag_select),
+				c.getResources().getBoolean(R.bool.settings_drag_select_default));
 	}
-	
+
+
 	/**
-	 * The radius, in density-independent pixels, around a point of interest 
-	 * where any touch event within that radius is considered to have touched 
+	 * The radius, in density-independent pixels, around a point of interest
+	 * where any touch event within that radius is considered to have touched
 	 * the point of interest itself
 	 */
 	protected static int TOUCH_SLOP = 12;
-	
+
 	/**
 	 * Determine if a point(x,y) on screen is near a character of interest,
 	 * specified by its index charOffset. The radius of proximity is defined
 	 * by TOUCH_SLOP.
-	 * 
+	 *
 	 * @param x X-coordinate excluding padding
 	 * @param y Y-coordinate excluding padding
 	 * @param charOffset the character of interest
@@ -383,10 +397,9 @@ public class TouchNavigationMethod extends GestureDetector.SimpleOnGestureListen
 				&& x < (bounds.right + TOUCH_SLOP)
 				);
 	}
-	
+
 	@SuppressWarnings("unused")
 	private TouchNavigationMethod(){
 		// do not invoke; always needs a valid _textField
 	}
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Tah Wei Hoon.
+ * Copyright (c) 2013 Tah Wei Hoon.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License Version 2.0,
  * with full text available at http://www.apache.org/licenses/LICENSE-2.0.html
@@ -11,8 +11,8 @@ package com.myopicmobile.textwarrior.common;
 /**
  * Singleton class containing the symbols and operators of the Javascript language
  */
-public class LanguageJavascript extends LanguageCFamily {
-	private static LanguageCFamily _theOne = null;
+public class LanguageJavascript extends Language {
+	private static Language _theOne = null;
 	
 	private final static String[] keywords = {
 		"abstract", "boolean", "break", "byte", "case", "catch", "char",
@@ -26,7 +26,7 @@ public class LanguageJavascript extends LanguageCFamily {
 		"volatile", "while", "with"
 	};
 
-	public static LanguageCFamily getCharacterEncodings(){
+	public static Language getInstance(){
 		if(_theOne == null){
 			_theOne = new LanguageJavascript();
 		}
@@ -34,7 +34,7 @@ public class LanguageJavascript extends LanguageCFamily {
 	}
 	
 	private LanguageJavascript(){
-		super.registerKeywords(keywords);
+		super.setKeywords(keywords);
 	}
 
 	public boolean isLineAStart(char c){

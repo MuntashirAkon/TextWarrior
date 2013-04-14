@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Tah Wei Hoon.
+ * Copyright (c) 2013 Tah Wei Hoon.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License Version 2.0,
  * with full text available at http://www.apache.org/licenses/LICENSE-2.0.html
@@ -11,8 +11,8 @@ package com.myopicmobile.textwarrior.common;
 /**
  * Singleton class containing the symbols and operators of the C language
  */
-public class LanguageC extends LanguageCFamily{
-	private static LanguageCFamily _theOne = null;
+public class LanguageC extends Language{
+	private static Language _theOne = null;
 	
 	private final static String[] keywords = {
 		"char", "double", "float", "int", "long", "short", "void",
@@ -23,7 +23,7 @@ public class LanguageC extends LanguageCFamily{
 		"goto", "if", "return", "switch", "while"
 		};
 
-	public static LanguageCFamily getCharacterEncodings(){
+	public static Language getInstance(){
 		if(_theOne == null){
 			_theOne = new LanguageC();
 		}
@@ -31,6 +31,6 @@ public class LanguageC extends LanguageCFamily{
 	}
 	
 	private LanguageC(){
-		super.registerKeywords(keywords);
+		super.setKeywords(keywords);
 	}
 }

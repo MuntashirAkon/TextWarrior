@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Tah Wei Hoon.
+ * Copyright (c) 2013 Tah Wei Hoon.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License Version 2.0,
  * with full text available at http://www.apache.org/licenses/LICENSE-2.0.html
@@ -16,56 +16,56 @@ import java.io.OutputStream;
 
 
 /**
- * 
+ *
  * Helper class to convert between different line terminator and encoding formats
  * and analyze a piece of text.
- * 
- * It is strongly recommended to use the native charset converters of the 
+ *
+ * It is strongly recommended to use the native charset converters of the
  * platform, if available, since the converters here do not handle errors well.
- * 
+ *
  * XXtoUTF16BE methods normalise all line terminator types to '\n' as a side-effect.
- * 
- * UTF16BEtoXX methods assume the line terminator type is '\n', add a BOM to the 
+ *
+ * UTF16BEtoXX methods assume the line terminator type is '\n', add a BOM to the
  * output stream as a side-effect and do not check the validity of the input UTF16 chars.
  * Malformed surrogate pairs and illegal Unicode values will be copied over as is.
- * 
+ *
  * UTF16toUTF16BE does not check the validity of the input chars.
  * Malformed surrogate pairs and illegal Unicode values will be copied over as is.
- * 
- * This class is not thread-safe. Only one thread should be accessing an object 
+ *
+ * This class is not thread-safe. Only one thread should be accessing an object
  * at a time.
  *
  */
 // To implement multi-threaded access, please examine how _unitsDone is used
 public class CharEncodingUtils {
 	private int _unitsDone = 0;
-	
+
 	/**
 	 * Returns the progress of the current operation. The units used depends on
 	 * the type of operation.
-	 * 
+	 *
 	 * Not synchronized; other threads calling this may get outdated values
-	 * but it should be all right if only an approximate value is needed 
+	 * but it should be all right if only an approximate value is needed
 	 */
 	public int getProgress(){
 		return _unitsDone;
 	}
-	
+
 	/**
 	 * Returns the encoding scheme used in file, according to the byte-order mark.
 	 * If there is no byte-order mark, TEXT_ENCODING_UTF8 is returned.
-	 * 
+	 *
 	 * Therefore, encoding schemes such as ASCII and Latin-1 will be erroneously
 	 * recognized as UTF-8.
-	 * 
-	 * @return One of TEXT_ENCODING_UTF8, TEXT_ENCODING_UTF16BE or 
+	 *
+	 * @return One of TEXT_ENCODING_UTF8, TEXT_ENCODING_UTF16BE or
 	 * 			TEXT_ENCODING_UTF16LE
 	 */
 	public String getEncodingScheme(File file)
 	throws IOException{
 		byte[] byteOrderMark = {0, 0, 0};
 		FileInputStream fs = new FileInputStream(file);
-		
+
 		try{
 			for(int i = 0; i < 3; ++i){
 				byteOrderMark[i] = (byte) fs.read();
@@ -75,7 +75,7 @@ public class CharEncodingUtils {
 			fs.close();
 			fs = null;
 		}
-		
+
 		if (byteOrderMark[0] == (byte) 0xFE &&
 			byteOrderMark[1] == (byte) 0xFF){
 			return EncodingScheme.TEXT_ENCODING_UTF16BE;
@@ -96,10 +96,10 @@ public class CharEncodingUtils {
 			return EncodingScheme.TEXT_ENCODING_UTF8;
 		}
 	}
-	
+
 	/**
 	 * Returns the line terminator style used in file.
-	 * 
+	 *
 	 * @return One of LINE_BREAK_LF, LINE_BREAK_CR or LINE_BREAK_CRLF
 	 */
 	public String getEOLType(File file, String encoding)
@@ -108,12 +108,12 @@ public class CharEncodingUtils {
 		String EOLType = null;
 		int c;
 		int prev = 0;
-		
+
 		try{
 			if(encoding.equals(EncodingScheme.TEXT_ENCODING_UTF16BE)){
 				fs.read(); // discard upper byte
 			}
-			
+
 			while (EOLType == null &&
 			(c = fs.read()) != -1){
 				if (c == '\n' && prev != '\r'){
@@ -127,7 +127,7 @@ public class CharEncodingUtils {
 						EOLType = EncodingScheme.LINE_BREAK_CR;
 					}
 				}
-	
+
 				prev = c;
 				if(encoding.equals(EncodingScheme.TEXT_ENCODING_UTF16BE) ||
 				encoding.equals(EncodingScheme.TEXT_ENCODING_UTF16LE)){
@@ -170,7 +170,7 @@ public class CharEncodingUtils {
 		}
 		return firstByte;
 	}
-	
+
 	public void writeByteOrderMark(OutputStream byteStream, String encoding)
 	throws IOException{
 		if(encoding.equals(EncodingScheme.TEXT_ENCODING_UTF16BE)){
@@ -187,14 +187,14 @@ public class CharEncodingUtils {
 	    	byteStream.write(0xBF);
 		}
 	}
-	
+
 	/**
 	 * Reads bytes from byteStream into buffer, converting to UTF-16BE encoding
 	 * and normalising all line terminators to UNIX style '\n'
-	 * 
+	 *
 	 * @param byteStream
 	 * @param buffer
-	 * @param encoding Encoding scheme of byteStream. Cannot be Auto! Call 
+	 * @param encoding Encoding scheme of byteStream. Cannot be Auto! Call
 	 * 			getEncodingScheme() to find the exact type first
 	 * @param EOLchar Line terminator style of byteStream
 	 * @param abort Other threads can set this to abort the read operation
@@ -218,19 +218,18 @@ public class CharEncodingUtils {
 			return UTF8toUTF16BE(byteStream, buffer, EOLchar, abort);
 		}
 		else{
-			TextWarriorException.assertVerbose(false,
-					"Unsupported encoding option" + encoding);
+			TextWarriorException.fail("Unsupported encoding option" + encoding);
 			return new Pair(0, 0);
 		}
 	}
-	
+
 	private Pair Latin1toUTF16BE(InputStream byteStream,
 	char[] buffer, String EOLchar, Flag abort)
 	throws IOException{
 		int currCharRead;
 		int lineCount = 1;
 		int totalChar = 0;
-	
+
 		while((currCharRead = byteStream.read()) != -1 && !abort.isSet()){
 			++_unitsDone;
 
@@ -242,7 +241,7 @@ public class CharEncodingUtils {
 				}
 				currCharRead = '\n';
 			}
-			
+
 			if (currCharRead == '\n'){
 				++lineCount;
 			}
@@ -272,7 +271,7 @@ public class CharEncodingUtils {
 			else{
 				currCharRead = (char) (byte0 | (byte1 << 8));
 			}
-			
+
 			if (currCharRead == '\r'){
 				if(EOLchar.equals(EncodingScheme.LINE_BREAK_CRLF)){
 					//TODO assert there is a valid '/n' after this '/r'
@@ -282,18 +281,18 @@ public class CharEncodingUtils {
 				}
 				currCharRead = '\n';
 			}
-			
+
 			if (currCharRead == '\n'){
 				++lineCount;
 			}
-			
+
 			buffer[totalChar++] = currCharRead;
 			byte0 = byteStream.read();
 		}
 
 		return new Pair(totalChar, lineCount);
 	}
-	
+
 	public void writeAndConvert(OutputStream byteStream,
 	DocumentProvider hDoc, String encoding, String EOLchar, Flag abort)
 	throws IOException{
@@ -313,19 +312,18 @@ public class CharEncodingUtils {
 			UTF16BEtoUTF8(byteStream, hDoc, EOLchar, abort);
 		}
 		else{
-			TextWarriorException.assertVerbose(false,
-					"Unsupported encoding option" + encoding);
+			TextWarriorException.fail("Unsupported encoding option" + encoding);
 		}
 	}
-	
+
 	private void UTF16BEtoLatin1(OutputStream byteStream,
 	DocumentProvider hDoc, String EOLchar, Flag abort)
 	throws IOException{
 		while(hDoc.hasNext() && !abort.isSet()){
 			char curr = hDoc.next();
 	    	++_unitsDone;
-	    	
-	    	if(curr == LanguageCFamily.EOF){
+
+	    	if(curr == Language.EOF){
 	    		break;
 	    	}
 
@@ -341,7 +339,7 @@ public class CharEncodingUtils {
 	    	byteStream.write(curr);
 		}
 	}
-	
+
 	private void UTF16BEtoUTF16(OutputStream byteStream,
 	DocumentProvider hDoc, boolean isBigEndian, String EOLchar, Flag abort)
 	throws IOException{
@@ -353,7 +351,7 @@ public class CharEncodingUtils {
 			char curr = hDoc.next();
 	    	++_unitsDone;
 
-	    	if(curr == LanguageCFamily.EOF){
+	    	if(curr == Language.EOF){
 	    		break;
 	    	}
 
@@ -382,14 +380,14 @@ public class CharEncodingUtils {
 	    	}
 		}
 	}
-	
-	
+
+
 	/*
 	 * The following UTF encoding form conversion methods were modified from
 	 * an algorithm by Richard Gillam, pp. 543, Unicode Demystified, 2003
 	 */
-	
-	// Lookup table to keep track of how many more bytes left to process to get 
+
+	// Lookup table to keep track of how many more bytes left to process to get
 	// a character. First index is the number of bytes of a UTF-8 character that
 	// has been processed. Second index is the top 5 bits of the current byte.
 	// Result of the lookup is the number of bytes left to process, or
@@ -406,10 +404,10 @@ public class CharEncodingUtils {
 		{-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,
 		 2, 2, 2, 2, 2, 2, 2, 2, -2, -2, -2, -2, -2, -2, -2, -2},
 		};
-	
+
 	private static final byte[] masks = { 0x7F, 0x1F, 0x0F, 0x07 };
 
-	
+
 	private Pair UTF8toUTF16BE(InputStream byteStream,
 	char[] buffer, String EOLchar, Flag abort)
 	throws IOException{
@@ -424,11 +422,11 @@ public class CharEncodingUtils {
 		while(currByte != -1 && !abort.isSet()){
 			++_unitsDone;
 			state = states[state][currByte >>> 3];
-			
+
 			switch(state){
 			case 0:
 				utf32Char += currByte & 0x7F;
-				
+
 				if (utf32Char == '\r'){
 					if(EOLchar.equals(EncodingScheme.LINE_BREAK_CRLF)){
 						//TODO assert there is a valid '/n' after this '/r'
@@ -452,7 +450,7 @@ public class CharEncodingUtils {
 				utf32Char = 0;
 				mask = 0;
 				break;
-				
+
 			case 1: // fall-through
 			case 2: // fall-through
 			case 3:
@@ -463,7 +461,7 @@ public class CharEncodingUtils {
 				utf32Char <<= 6;
 				mask = (byte) 0x3F;
 				break;
-				
+
 			case -2: // fall-through
 			case -1:
 				//TODO replace malformed sequence with the Unicode replacement char 0xFFFD
@@ -488,7 +486,7 @@ public class CharEncodingUtils {
 
 		return new Pair(totalChar, lineCount);
 	}
-	
+
 	private void UTF16BEtoUTF8(OutputStream byteStream,
 	DocumentProvider hDoc, String EOLchar, Flag abort)
 	throws IOException{
@@ -498,10 +496,10 @@ public class CharEncodingUtils {
 			char curr = hDoc.next();
 	    	++_unitsDone;
 
-	    	if(curr == LanguageCFamily.EOF){
+	    	if(curr == Language.EOF){
 	    		break;
 	    	}
-	    	
+
 			if(curr < 0xD800 || curr > 0xDFFF){
 				utf32Char = curr;
 			}
@@ -510,7 +508,7 @@ public class CharEncodingUtils {
 				utf32Char = (curr-0xD7C0) << 10;
 				utf32Char += hDoc.next() & 0x03FF;
 			}
-	    	
+
 			// Encode variable number of UTF-8 bytes depending on the UTF-32 value
 		    if (utf32Char < 0x80){
 		    	// convert '\n' to desired line terminator symbol
@@ -547,29 +545,27 @@ public class CharEncodingUtils {
 	 */
 	public Statistics analyze(DocumentProvider src, int start, int end, Flag abort) {
 		if(start < 0 || start >= src.docLength()){
-			TextWarriorException.assertVerbose(false,
-				"Invalid start index");
+			TextWarriorException.fail("Invalid start index");
 			return new Statistics(0, 0, 0, 0);
 		}
 		if(start > end){
-			TextWarriorException.assertVerbose(false,
-				"Start index cannot be greater than end index");
+			TextWarriorException.fail("Start index cannot be greater than end index");
 			return new Statistics(0, 0, 0, 0);
 		}
 		if(start == end){
 			return new Statistics(0, 0, 0, 0);
 		}
-		
+
 		int wordCount = 0;
 		_unitsDone = 0;
 		int whiteSpaceCount = 0;
 		int lines = 1;
-		LanguageCFamily charSet = Lexer.getLanguage();
-		
+		Language charSet = Lexer.getLanguage();
+
 		char firstChar = src.charAt(start);
 		//whether the current char and possibly the ones before are whitespace
 		boolean whiteSpaceRun = charSet.isWhitespace(firstChar);
-		
+
 		src.seekChar(start);
 		while(src.hasNext() && _unitsDone < (end-start)
 				&& !abort.isSet()){
@@ -579,10 +575,10 @@ public class CharEncodingUtils {
 			if(c == '\n'){
 				++lines;
 			}
-			
+
 			if(charSet.isWhitespace(c)){
 				++whiteSpaceCount;
-				
+
 				if(!whiteSpaceRun){
 					whiteSpaceRun = true;
 					++wordCount;
@@ -592,7 +588,7 @@ public class CharEncodingUtils {
 				whiteSpaceRun = false;
 			}
 		}
-		
+
 		if(!whiteSpaceRun){
 			// the final word didn't end with whitespace
 			++wordCount;
@@ -602,7 +598,7 @@ public class CharEncodingUtils {
 			--_unitsDone;
 			--whiteSpaceCount;
 		}
-		
+
 		return new Statistics(wordCount, _unitsDone, whiteSpaceCount, lines);
 	}
 
@@ -611,10 +607,10 @@ public class CharEncodingUtils {
 		public int charCount = 0;
 		public int whitespaceCount = 0;
 		public int lineCount = 0;
-		
+
 		public Statistics(){
 		}
-		
+
 		public Statistics(int words, int chars, int whitespaces, int lines){
 			wordCount = words;
 			charCount = chars;

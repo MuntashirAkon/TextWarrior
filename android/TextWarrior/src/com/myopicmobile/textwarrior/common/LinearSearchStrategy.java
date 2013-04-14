@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Tah Wei Hoon.
+ * Copyright (c) 2013 Tah Wei Hoon.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License Version 2.0,
  * with full text available at http://www.apache.org/licenses/LICENSE-2.0.html
@@ -11,7 +11,7 @@ package com.myopicmobile.textwarrior.common;
 
 public class LinearSearchStrategy implements SearchStrategy{
 	private int _unitsDone = 0;
-	
+
 	@Override
 	// only applicable to replaceAll operation
 	public int getProgress(){
@@ -30,7 +30,7 @@ public class LinearSearchStrategy implements SearchStrategy{
 			foundOffset = find(src, target, 0, start,
 					isCaseSensitive, isWholeWord);
 		}
-		
+
 		return foundOffset;
 	}
 
@@ -41,16 +41,14 @@ public class LinearSearchStrategy implements SearchStrategy{
 			return -1;
 		}
 		if(start < 0){
-			TextWarriorException.assertVerbose(false,
-			"TextBuffer.find: Invalid start position");
+			TextWarriorException.fail("TextBuffer.find: Invalid start position");
 			start = 0;
 		}
 		if(end > src.docLength()){
-			TextWarriorException.assertVerbose(false,
-			"TextBuffer.find: Invalid end position");
+			TextWarriorException.fail("TextBuffer.find: Invalid end position");
 			end = src.docLength();
 		}
-		
+
 		end = Math.min(end, src.docLength() - target.length() + 1);
 		int offset = start;
 		while(offset < end){
@@ -58,7 +56,7 @@ public class LinearSearchStrategy implements SearchStrategy{
 			(!isWholeWord || isSandwichedByWhitespace(src, offset, target.length())) ){
 				break;
 			}
-			
+
 			++offset;
 			++_unitsDone;
 		}
@@ -95,13 +93,11 @@ public class LinearSearchStrategy implements SearchStrategy{
 			return -1;
 		}
 		if(start >= src.docLength()){
-			TextWarriorException.assertVerbose(false,
-			"Invalid start position given to TextBuffer.find");
+			TextWarriorException.fail("Invalid start position given to TextBuffer.find");
 			start = src.docLength() - 1;
 		}
 		if(end < -1){
-			TextWarriorException.assertVerbose(false,
-			"Invalid end position given to TextBuffer.find");
+			TextWarriorException.fail("Invalid end position given to TextBuffer.find");
 			end = -1;
 		}
 		int offset = Math.min(start, src.docLength()-target.length());
@@ -113,7 +109,7 @@ public class LinearSearchStrategy implements SearchStrategy{
 
 			--offset;
 		}
-		
+
 		if (offset > end){
 			return offset;
 		}
@@ -129,12 +125,12 @@ public class LinearSearchStrategy implements SearchStrategy{
 		int replacementCount = 0;
 		int anchor = mark;
 		_unitsDone = 0;
-		
+
 		final char[] replacement = replacementText.toCharArray();
 		int foundIndex = find(src, searchText, 0, src.docLength(),
 				isCaseSensitive, isWholeWord);
 		long timestamp = System.nanoTime();
-		
+
 		src.beginBatchEdit();
 		while (foundIndex != -1){
 			src.deleteAt(foundIndex, searchText.length(), timestamp);
@@ -158,15 +154,15 @@ public class LinearSearchStrategy implements SearchStrategy{
 
 		return new Pair(replacementCount, Math.max(anchor, 0));
 	}
-	
-	
+
+
 	protected boolean equals(DocumentProvider src, String target,
 			int srcOffset, boolean isCaseSensitive){
 		if((src.docLength() - srcOffset) < target.length()){
 			//compared range in src must at least be as long as target
 			return false;
 		}
-		
+
 		int i;
 		for(i = 0; i < target.length(); ++i){
 			if (isCaseSensitive &&
@@ -175,32 +171,32 @@ public class LinearSearchStrategy implements SearchStrategy{
 			}
 			// for case-insensitive search, compare both strings in lower case
 			if (!isCaseSensitive &&
-					Character.toLowerCase(target.charAt(i)) != 
+					Character.toLowerCase(target.charAt(i)) !=
 					Character.toLowerCase(src.charAt(i + srcOffset))){
 				return false;
 			}
-			
+
 		}
-		
+
 		return true;
 	}
-	
+
 	/**
-	 * Checks if a word starting at startPosition with size length is bounded 
+	 * Checks if a word starting at startPosition with size length is bounded
 	 * by whitespace.
 	 */
 	protected boolean isSandwichedByWhitespace(DocumentProvider src,
 			int start, int length){
-		LanguageCFamily charSet = Lexer.getLanguage();
+		Language charSet = Lexer.getLanguage();
 		boolean startWithWhitespace = (start == 0)
 				? true
 				: charSet.isWhitespace(src.charAt(start - 1));
-		
+
 		int end = start + length;
 		boolean endWithWhitespace = (end == src.docLength())
 				? true
 				: charSet.isWhitespace(src.charAt(end));
-	
+
 		return (startWithWhitespace && endWithWhitespace);
 	}
 

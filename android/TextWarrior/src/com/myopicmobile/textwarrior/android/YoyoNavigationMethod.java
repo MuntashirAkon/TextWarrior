@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Tah Wei Hoon.
+ * Copyright (c) 2013 Tah Wei Hoon.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License Version 2.0,
  * with full text available at http://www.apache.org/licenses/LICENSE-2.0.html
@@ -164,7 +164,7 @@ public class YoyoNavigationMethod extends TouchNavigationMethod{
 
 	@Override
 	public Rect getCaretBloat() {
-		return _yoyo.getRestingSize();
+		return _yoyo.HANDLE_BLOAT;
 	}
 	
 
@@ -176,7 +176,7 @@ public class YoyoNavigationMethod extends TouchNavigationMethod{
 				_textField.getContext().getResources(), R.drawable.yoyo);
 		private final Bitmap HANDLE_SELECTED_IMG = BitmapFactory.decodeResource(
 				_textField.getContext().getResources(), R.drawable.yoyo_selected);
-		private final Rect HANDLE_SIZE;
+		public final Rect HANDLE_BLOAT;
 
 		//coordinates where the top of the yoyo string is attached
 		private int _anchorX = 0;
@@ -197,10 +197,10 @@ public class YoyoNavigationMethod extends TouchNavigationMethod{
 
 		public Yoyo(){
 			int radius = getRadius();
-			HANDLE_SIZE = new Rect(
+			HANDLE_BLOAT = new Rect(
 					radius,
 					0,
-					HANDLE_IMG.getWidth() - radius,
+					0 /* HANDLE_IMG.getWidth() - radius */,
 					HANDLE_IMG.getHeight() + YOYO_STRING_RESTING_HEIGHT);
 			
 			_brush = new Paint();
@@ -237,10 +237,6 @@ public class YoyoNavigationMethod extends TouchNavigationMethod{
 		
 		final public int getRadius() {
 			return HANDLE_IMG.getWidth() / 2;
-		}
-		
-		public Rect getRestingSize(){
-			return HANDLE_SIZE;
 		}
 		
 		/**

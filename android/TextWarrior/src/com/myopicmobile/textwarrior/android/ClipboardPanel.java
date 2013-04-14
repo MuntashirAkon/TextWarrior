@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Tah Wei Hoon.
+ * Copyright (c) 2013 Tah Wei Hoon.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License Version 2.0,
  * with full text available at http://www.apache.org/licenses/LICENSE-2.0.html
@@ -18,19 +18,22 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
 
+import com.myopicmobile.textwarrior.common.ColorScheme;
+
 public class ClipboardPanel extends Panel{
 	protected ImageButton _cut;
 	protected ImageButton _copy;
 	protected ImageButton _paste;
-	
+
 	private final float MIN_FLICK_VELOCITY = 150;
-	private boolean mFlushedHandle; //whether the handle should be wrapped to the contents
+	private final boolean mFlushedHandle; //whether the handle should be wrapped to the contents
 	GestureDetector _gestureDetector;
-	
+
 	public ClipboardPanel(Context context, AttributeSet attrs) {
 		super(context, attrs);
 		TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.ClipboardPanel);
 		mFlushedHandle = a.getBoolean(R.styleable.ClipboardPanel_flushedHandle, false);
+		a.recycle();
 
 		_gestureDetector = new GestureDetector(context, _contentGestureListener);
 		_gestureDetector.setIsLongpressEnabled(false);
@@ -39,12 +42,12 @@ public class ClipboardPanel extends Panel{
 	@Override
 	protected void onFinishInflate() {
 		super.onFinishInflate();
-		
+
     	_cut = (ImageButton) findViewById(R.id.cut);
     	_copy = (ImageButton) findViewById(R.id.copy);
     	_paste = (ImageButton) findViewById(R.id.paste);
 	}
-	
+
 	@Override
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 		if(mFlushedHandle){
@@ -61,7 +64,7 @@ public class ClipboardPanel extends Panel{
 						content.getMeasuredHeight(), MeasureSpec.EXACTLY);
 			}
 		}
-		
+
 		super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 	}
 
@@ -88,26 +91,37 @@ public class ClipboardPanel extends Panel{
 
 	/**
 	 * Enables/disables the individual clipboard buttons
-	 * 
+	 *
 	 * @param cut
 	 * @param copy
 	 * @param paste
 	 */
 	public void setClipboardButtonState(boolean cut, boolean copy, boolean paste){
-    	_cut.setEnabled(cut);
-    	_copy.setEnabled(copy);
-    	_paste.setEnabled(paste);
+		_cut.setEnabled(cut);
+		_copy.setEnabled(copy);
+		_paste.setEnabled(paste);
 	}
-	
+
 	public void setCutListener(OnClickListener listener){
 		_cut.setOnClickListener(listener);
 	}
-	
+
 	public void setCopyListener(OnClickListener listener){
 		_copy.setOnClickListener(listener);
 	}
-	
+
 	public void setPasteListener(OnClickListener listener){
 		_paste.setOnClickListener(listener);
+	}
+
+	public void setColorScheme(ColorScheme colorScheme){
+		if (colorScheme.isDark()){
+			// if the color scheme uses a dark background, the clipboard needs
+			// a light background for contrast
+			getContent().setBackgroundResource(R.drawable.clipboard_drawer_background_light);
+		}
+		else{
+			getContent().setBackgroundResource(R.drawable.clipboard_drawer_background_dark);
+		}
 	}
 }

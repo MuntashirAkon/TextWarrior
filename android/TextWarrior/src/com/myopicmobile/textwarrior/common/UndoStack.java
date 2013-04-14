@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Tah Wei Hoon.
+ * Copyright (c) 2013 Tah Wei Hoon.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License Version 2.0,
  * with full text available at http://www.apache.org/licenses/LICENSE-2.0.html
@@ -289,13 +289,15 @@ public class UndoStack {
 				_buf.shiftGapStart(-_length);
 			}
 			else{
-				_buf.realDelete(_start, _length);
+				//dummy timestamp of 0
+				_buf.delete(_start, _length, 0 ,false);
 			}
 		}
 
 		@Override
 		public void redo() {
-			_buf.realInsert(_data.toCharArray(), _start);
+			//dummy timestamp of 0
+			_buf.insert(_data.toCharArray(), _start, 0, false);
 		}
 
 		@Override
@@ -351,13 +353,15 @@ public class UndoStack {
 				_buf.shiftGapStart(_length);
 			}
 			else{
-				_buf.realInsert(_data.toCharArray(), _start);
+				//dummy timestamp of 0
+				_buf.insert(_data.toCharArray(), _start, 0, false);
 			}
 		}
 
 		@Override
 		public void redo() {
-			_buf.realDelete(_start, _length);
+			//dummy timestamp of 0
+			_buf.delete(_start, _length, 0, false);
 		}
 
 		@Override

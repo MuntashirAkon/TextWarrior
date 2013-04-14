@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Tah Wei Hoon.
+ * Copyright (c) 2013 Tah Wei Hoon.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License Version 2.0,
  * with full text available at http://www.apache.org/licenses/LICENSE-2.0.html
@@ -16,12 +16,13 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.view.MotionEvent;
 
+import com.myopicmobile.textwarrior.common.ColorScheme;
 import com.myopicmobile.textwarrior.common.TextWarriorException;
 
 public class TrackpadNavigationMethod extends TouchNavigationMethod{
 	private boolean _isTrackpadPressed = false;
 	private final Trackpad _trackpad = new Trackpad();
-	
+
 	public TrackpadNavigationMethod(FreeScrollingTextField textField){
 		super(textField);
 	}
@@ -31,7 +32,7 @@ public class TrackpadNavigationMethod extends TouchNavigationMethod{
 		int x = (int) e.getX() + _textField.getScrollX();
 		int y = (int) e.getY() + _textField.getScrollY();
 		_isTrackpadPressed = _trackpad.isInTrackpad(x, y);
-		
+
 		if(_isTrackpadPressed){
 			return true;
 		}
@@ -62,14 +63,14 @@ public class TrackpadNavigationMethod extends TouchNavigationMethod{
 			if ((e2.getAction() & MotionEvent.ACTION_MASK) == MotionEvent.ACTION_UP){
 				onUp(e2);
 			}
-			
+
 			return true;
 		}
 		else{
 			return super.onScroll(e1, e2, distanceX, distanceY);
 		}
 	}
-	
+
 	@Override
 	public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
 			float velocityY) {
@@ -93,7 +94,7 @@ public class TrackpadNavigationMethod extends TouchNavigationMethod{
 	public boolean onTouchEvent(MotionEvent event) {
 		int pointerId = getPointerId(event);
 		int action = event.getAction() & MotionEvent.ACTION_MASK;
-		
+
 		//detect secondary motion events
 		if (event.getPointerCount() == 2
 				&& _secondPointerId == INVALID_ID
@@ -108,7 +109,7 @@ public class TrackpadNavigationMethod extends TouchNavigationMethod{
 				int pointerIndex = event.findPointerIndex(pointerId);
 				float distanceX = event.getX(pointerIndex);
 				float distanceY = event.getY(pointerIndex);
-				
+
 				moveCaretWithTrackpad(distanceX - _lastSecondaryX,
 						distanceY - _lastSecondaryY);
 				_lastSecondaryX = distanceX;
@@ -130,7 +131,7 @@ public class TrackpadNavigationMethod extends TouchNavigationMethod{
 	private final static double MIN_ATAN = 0.322; // == atan(1/3)
 	private float _xAccum = 0.0f;
 	private float _yAccum = 0.0f;
-	
+
 	private void moveCaretWithTrackpad(float distanceX, float distanceY){
 		//reset accumulators when polarity of displacement changes
 		if((_xAccum < 0 && distanceX > 0) || (_xAccum > 0 && distanceX < 0)){
@@ -141,13 +142,13 @@ public class TrackpadNavigationMethod extends TouchNavigationMethod{
 		}
 
 		double angle = Math.atan2(Math.abs(distanceX), Math.abs(distanceY));
-		
+
 		if(angle >= MIN_ATAN){
 			//non-negligible x-axis movement
 			float x = _xAccum + distanceX;
 			int xUnits = ((int) x) / MOVEMENT_PIXELS;
 			_xAccum = x - (xUnits * MOVEMENT_PIXELS);
-			
+
 			while(xUnits > 0){
 				_textField.moveCaretRight();
 				--xUnits;
@@ -163,7 +164,7 @@ public class TrackpadNavigationMethod extends TouchNavigationMethod{
 			float y = _yAccum + distanceY;
 			int yUnits = ((int) y) / MOVEMENT_PIXELS;
 			_yAccum = y - (yUnits * MOVEMENT_PIXELS);
-			
+
 			for(int i = yUnits; i > 0; --i){
 				_textField.moveCaretDown();
 			}
@@ -191,7 +192,7 @@ public class TrackpadNavigationMethod extends TouchNavigationMethod{
 	public boolean onDoubleTap(MotionEvent e) {
 		int x = (int) e.getX() + _textField.getScrollX();
 		int y = (int) e.getY() + _textField.getScrollY();
-		
+
 		//ignore taps on trackpad
 		if(_trackpad.isInTrackpad(x, y)){
 			return true;
@@ -206,44 +207,77 @@ public class TrackpadNavigationMethod extends TouchNavigationMethod{
 		_trackpad.draw(canvas);
 	}
 
-	
-	
+	@Override
+	public void onColorSchemeChanged(ColorScheme colorScheme) {
+		_trackpad.updateTrackpadImage();
+	}
+
+	@Override
+	public void onChiralityChanged(boolean isRightHanded) {
+		_trackpad.updateTrackpadImage();
+	}
+
+
 	private class Trackpad{
 		private final Bitmap OPEN_IMG = BitmapFactory.decodeResource(
 				_textField.getContext().getResources(), R.drawable.trackpad_open);
 		private final Bitmap CLOSE_IMG = BitmapFactory.decodeResource(
 				_textField.getContext().getResources(), R.drawable.trackpad_close);
-		private Drawable _trackpad_right_img, _trackpad_left_img;
+		private Drawable _trackpad_img;
 
 		private final static int TRACKPAD_ALPHA = 225;
-		private Paint _brush = new Paint();
+		private final Paint _brush = new Paint();
 
 		private final static int MAX_WIDTH_DP = 240;
 		private final static int MAX_HEIGHT_DP = 140;
 		private final int MAX_WIDTH;
 		private final int MAX_HEIGHT;
-		
+
 		private int _width;
 		private int _height;
-		
+
 		public Trackpad(){
 			_width = OPEN_IMG.getWidth();
 			_height = OPEN_IMG.getHeight();
-			
+
 			float dpScale = _textField.getResources().getDisplayMetrics().density;
 			MAX_WIDTH = (int) (MAX_WIDTH_DP * dpScale + 0.5f);
 			MAX_HEIGHT = (int) (MAX_HEIGHT_DP * dpScale + 0.5f);
 
-			 TextWarriorException.assertVerbose(_width <= MAX_WIDTH,
-			 	"Trackpad button width cannot be more than MAX_WIDTH");
-			 TextWarriorException.assertVerbose(_height <= MAX_HEIGHT,
-			 	"Trackpad button height cannot be more than MAX_HEIGHT");
-			 TextWarriorException.assertVerbose(
-					 (CLOSE_IMG.getWidth() == _width)
-					 && (CLOSE_IMG.getHeight() == _height),
-			 	"Open and close buttons have to be the same size");
-			 
+			TextWarriorException.assertVerbose(_width <= MAX_WIDTH,
+				"Trackpad button width cannot be more than MAX_WIDTH");
+			TextWarriorException.assertVerbose(_height <= MAX_HEIGHT,
+				"Trackpad button height cannot be more than MAX_HEIGHT");
+			TextWarriorException.assertVerbose(
+					(CLOSE_IMG.getWidth() == _width)
+					&& (CLOSE_IMG.getHeight() == _height),
+				"Open and close buttons have to be the same size");
+
 			_brush.setAlpha(TRACKPAD_ALPHA);
+			updateTrackpadImage();
+		}
+
+		public void updateTrackpadImage() {
+			boolean isRightHanded = isRightHanded();
+			boolean isDark = _textField.getColorScheme().isDark();
+
+			int imgId;
+			// A light colored trackpad is used if the rest of the app is dark and vice-versa
+			if (isDark && isRightHanded){
+				imgId = R.drawable.trackpad_right_light;
+			}
+			else if (isDark && !isRightHanded){
+				imgId = R.drawable.trackpad_left_light;
+			}
+			else if (!isDark && isRightHanded){
+				imgId = R.drawable.trackpad_right_dark;
+			}
+			else{
+				imgId = R.drawable.trackpad_left_dark;
+			}
+
+			_trackpad_img = _textField.getContext().getResources().getDrawable(imgId);
+			invalidateTrackpad();
 		}
 
 		public boolean isInTrackpad(int x, int y) {
@@ -252,7 +286,7 @@ public class TrackpadNavigationMethod extends TouchNavigationMethod{
 					&& y >= bounds.top && y < bounds.bottom
 					);
 		}
-		
+
 		public boolean isOpen(){
 			return _state == OPENED;
 		}
@@ -277,21 +311,22 @@ public class TrackpadNavigationMethod extends TouchNavigationMethod{
 		public void open(){
 			if(_state == CLOSED){
 				_state = OPENING;
-				
+
 				_animationStartTime = System.nanoTime();
 				_textField.post(showTrackpad);
 			}
 		}
-		
-		private Runnable showTrackpad = new Runnable(){
+
+		private final Runnable showTrackpad = new Runnable(){
+			@Override
 			public void run(){
 				int baseWidth = CLOSE_IMG.getWidth();
 				int baseHeight = CLOSE_IMG.getHeight();
 				int widthDelta = MAX_WIDTH - baseWidth;
 				int heightDelta = MAX_HEIGHT - baseHeight;
-				
+
 				float elapsedTime = System.nanoTime() - _animationStartTime;
-				
+
 				if(elapsedTime < ANIMATION_DURATION){
 					_width = baseWidth +
 							(int) (elapsedTime / ANIMATION_DURATION * widthDelta);
@@ -308,7 +343,7 @@ public class TrackpadNavigationMethod extends TouchNavigationMethod{
 				}
 			}
 		};
-		
+
 		public void close(){
 			if(_state == OPENED){
 				_state = CLOSING;
@@ -318,13 +353,14 @@ public class TrackpadNavigationMethod extends TouchNavigationMethod{
 			}
 		}
 
-		private Runnable hideTrackpad = new Runnable(){
+		private final Runnable hideTrackpad = new Runnable(){
+			@Override
 			public void run(){
 				int baseWidth = OPEN_IMG.getWidth();
 				int baseHeight = OPEN_IMG.getHeight();
 				int widthDelta = MAX_WIDTH - baseWidth;
 				int heightDelta = MAX_HEIGHT - baseHeight;
-				
+
 				float elapsedTime = System.nanoTime() - _animationStartTime;
 
 				invalidateTrackpad();
@@ -342,15 +378,15 @@ public class TrackpadNavigationMethod extends TouchNavigationMethod{
 				}
 			}
 		};
-		
+
 		private void invalidateTrackpad(){
 			_textField.invalidate(getTrackpadBoundingBox());
 		}
-		
+
 		private Rect getTrackpadBoundingBox(){
 			int bottom = _textField.getScrollY() + _textField.getHeight();
 			int top = bottom - _height;
-			
+
 			int left, right;
 			if(isRightHanded()){
 				right = _textField.getScrollX() + _textField.getWidth();
@@ -360,20 +396,16 @@ public class TrackpadNavigationMethod extends TouchNavigationMethod{
 				left = _textField.getScrollX();
 				right = left + _width;
 			}
-			
+
 			return new Rect(left, top, right, bottom);
 		}
 
-		
+
 		public void draw(Canvas c){
 			Rect bounds = getTrackpadBoundingBox();
 			float trackpadLeft = bounds.left;
 			float trackpadTop = bounds.top;
-			
-			boolean rightHanded = isRightHanded();
-			Drawable trackpad = rightHanded ? getTrackpadRightImg()
-					: getTrackpadLeftImg();
-			
+
 			Bitmap button;
 			int buttonLeft, buttonTop;
 			if(_state == CLOSED){
@@ -383,32 +415,15 @@ public class TrackpadNavigationMethod extends TouchNavigationMethod{
 			}
 			else{
 				button = CLOSE_IMG;
-				buttonLeft = rightHanded ? bounds.right - CLOSE_IMG.getWidth()
+				buttonLeft = isRightHanded() ? bounds.right - CLOSE_IMG.getWidth()
 							: (int) trackpadLeft;
 				buttonTop = bounds.bottom - CLOSE_IMG.getHeight();
 			}
 
 			c.drawBitmap(button, buttonLeft, buttonTop, _brush);
-			trackpad.setBounds((int) trackpadLeft, (int) trackpadTop,
+			_trackpad_img.setBounds((int) trackpadLeft, (int) trackpadTop,
 					(int) trackpadLeft + _width, (int) trackpadTop + _height);
-			trackpad.draw(c);
-		}
-
-		//lazy load images
-		final private Drawable getTrackpadRightImg(){
-			if(_trackpad_right_img == null){
-				_trackpad_right_img = _textField.getContext().getResources()
-		 			.getDrawable(R.drawable.trackpad_right);
-			}
-			return _trackpad_right_img;
-		}
-		
-		final private Drawable getTrackpadLeftImg(){
-			if(_trackpad_left_img == null){
-				 _trackpad_left_img = _textField.getContext().getResources()
-			 		.getDrawable(R.drawable.trackpad_left);
-			}
-			return _trackpad_left_img;
+			_trackpad_img.draw(c);
 		}
 	}//end inner class
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Tah Wei Hoon.
+ * Copyright (c) 2013 Tah Wei Hoon.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License Version 2.0,
  * with full text available at http://www.apache.org/licenses/LICENSE-2.0.html
@@ -15,8 +15,7 @@ import java.io.IOException;
 
 public class ReadThread extends FileIOThread{
 	final protected TextBuffer _buf;
-	
-	//TODO use DocumentProvider instead of TextBuffer
+
 	public ReadThread(File file, TextBuffer buf,
 			String encoding, String EOLchar){
 		super(file, encoding, EOLchar);

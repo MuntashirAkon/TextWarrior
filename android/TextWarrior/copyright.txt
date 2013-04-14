@@ -1,4 +1,4 @@
-Copyright (c) 2011 Tah Wei Hoon.
+Copyright (c) 2013 Tah Wei Hoon.
 All rights reserved. This program and the accompanying materials are made available under the terms of the Apache License Version 2.0.
 The full license terms can be found at http://www.apache.org/licenses/LICENSE-2.0.html
 
@@ -56,9 +56,6 @@ Google Inc., Android API 8, Apache Version 2.0
 ic_menu_back_small.png
 OpenIntents, OI File Manager, Apache Version 2.0
 
-ic_menu_forward_small.png
-OpenIntents, OI File Manager, Apache Version 2.0
-
 icon.png
 Lufang Hsiung, Public Domain
 Modified by Tah Wei Hoon, CC-BY 3.0
@@ -104,13 +101,19 @@ Tah Wei Hoon, CC-BY 3.0
 trackpad_close.png
 Tah Wei Hoon, CC-BY 3.0
 
-trackpad_left.9.png
+trackpad_left_dark.9.png
+Tah Wei Hoon, CC-BY 3.0
+
+trackpad_left_light.9.png
 Tah Wei Hoon, CC-BY 3.0
 
 trackpad_open.png
 Tah Wei Hoon, CC-BY 3.0
 
-trackpad_right.9.png
+trackpad_right_dark.9.png
+Tah Wei Hoon, CC-BY 3.0
+
+trackpad_right_light.9.png
 Tah Wei Hoon, CC-BY 3.0
 
 yoyo.png

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Tah Wei Hoon.
+ * Copyright (c) 2013 Tah Wei Hoon.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License Version 2.0,
  * with full text available at http://www.apache.org/licenses/LICENSE-2.0.html
@@ -11,8 +11,8 @@ package com.myopicmobile.textwarrior.common;
 /**
  * Singleton class containing the symbols and operators of the C# language
  */
-public class LanguageCsharp extends LanguageCFamily {
-	private static LanguageCFamily _theOne = null;
+public class LanguageCsharp extends Language {
+	private static Language _theOne = null;
 	
 	private final static String[] keywords = {
 		"abstract",	"as", "base", "bool", "break", "byte", "case", "catch",
@@ -32,7 +32,7 @@ public class LanguageCsharp extends LanguageCFamily {
 		"ascending", "descending", "select", "group", "by"
 	};
 
-	public static LanguageCFamily getCharacterEncodings(){
+	public static Language getInstance(){
 		if(_theOne == null){
 			_theOne = new LanguageCsharp();
 		}
@@ -40,7 +40,7 @@ public class LanguageCsharp extends LanguageCFamily {
 	}
 	
 	private LanguageCsharp(){
-		super.registerKeywords(keywords);
+		super.setKeywords(keywords);
 	}
 
 }

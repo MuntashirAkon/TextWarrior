@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Tah Wei Hoon.
+ * Copyright (c) 2013 Tah Wei Hoon.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License Version 2.0,
  * with full text available at http://www.apache.org/licenses/LICENSE-2.0.html
@@ -11,8 +11,8 @@ package com.myopicmobile.textwarrior.common;
 /**
  * Singleton class containing the symbols and operators of the Python language
  */
-public class LanguagePython extends LanguageCFamily{
-	private static LanguageCFamily _theOne = null;
+public class LanguagePython extends Language{
+	private static Language _theOne = null;
 	
 	private final static String[] keywords = {
 		"and", "assert", "break", "class", "continue", "def", "del",
@@ -54,7 +54,7 @@ public class LanguagePython extends LanguageCFamily{
 		return false;
 	}
 	
-	public static LanguageCFamily getCharacterEncodings(){
+	public static Language getInstance(){
 		if(_theOne == null){
 			_theOne = new LanguagePython();
 		}
@@ -62,7 +62,7 @@ public class LanguagePython extends LanguageCFamily{
 	}
 	
 	private LanguagePython(){
-		super.registerKeywords(keywords);
-		super.replaceOperators(operators);
+		super.setKeywords(keywords);
+		super.setOperators(operators);
 	}
 }

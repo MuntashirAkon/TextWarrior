@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Tah Wei Hoon.
+ * Copyright (c) 2013 Tah Wei Hoon.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License Version 2.0,
  * with full text available at http://www.apache.org/licenses/LICENSE-2.0.html
@@ -36,7 +36,7 @@ public class TextBuffer {
 
 	public TextBuffer(){
 		_contents = new char[MIN_GAP_SIZE + 1]; // extra char for EOF
-		_contents[MIN_GAP_SIZE] = LanguageCFamily.EOF;
+		_contents[MIN_GAP_SIZE] = Language.EOF;
 		_allocMultiplier = 1;
 		_gapStartIndex = 0;
 		_gapEndIndex = MIN_GAP_SIZE;
@@ -93,30 +93,47 @@ public class TextBuffer {
 		_originalEOLType = EOL;
 	}
 
+
+	/**
+	 * Returns a string of text corresponding to the line with index lineNumber.
+	 * 
+	 * @param lineNumber The index of the line of interest
+	 * @return The text on lineNumber, or an empty string if the line does not exist
+	 */
+	synchronized public String getLine(int lineNumber){
+		int startIndex = getLineOffset(lineNumber);
+		
+		if(startIndex < 0){
+			return new String();
+		}
+		int lineSize = getLineSize(lineNumber);
+		
+		return new String(subSequence(startIndex, lineSize));
+	}
 	
 	/**
-	 * Get the offset of the first character of targetLine, counting from the 
-	 * beginning of the text.
+	 * Get the offset of the first character of the line with index lineNumber.
+	 * The offset is counted from the beginning of the text.
 	 * 
-	 * @param targetLine The index of the line of interest
-	 * @return The character offset of targetLine, or -1 if the line does not exist
+	 * @param lineNumber The index of the line of interest
+	 * @return The character offset of lineNumber, or -1 if the line does not exist
 	 */
-	synchronized public int getCharOffset(int targetLine){
-		if(targetLine < 0){
+	synchronized public int getLineOffset(int lineNumber){
+		if(lineNumber < 0){
 			return -1;
 		}
 		
 		// start search from nearest known lineIndex~charOffset pair
-		Pair cachedEntry = _cache.getNearestLine(targetLine);
+		Pair cachedEntry = _cache.getNearestLine(lineNumber);
 		int cachedLine = cachedEntry.getFirst();
 		int cachedOffset = cachedEntry.getSecond();
 
 		int offset;
-		if (targetLine > cachedLine){
-			offset = findCharOffset(targetLine, cachedLine, cachedOffset);
+		if (lineNumber > cachedLine){
+			offset = findCharOffset(lineNumber, cachedLine, cachedOffset);
 		}
-		else if (targetLine < cachedLine){
-			offset = findCharOffsetBackward(targetLine, cachedLine, cachedOffset);
+		else if (lineNumber < cachedLine){
+			offset = findCharOffsetBackward(lineNumber, cachedLine, cachedOffset);
 		}
 		else{
 			offset = cachedOffset;
@@ -124,7 +141,7 @@ public class TextBuffer {
 		
 		if (offset >= 0){
 			// seek successful
-			_cache.updateEntry(targetLine, offset);
+			_cache.updateEntry(lineNumber, offset);
 		}
 
 		return offset;
@@ -141,7 +158,7 @@ public class TextBuffer {
 			"findCharOffsetBackward: Invalid startingOffset given");
 		
 		while((workingLine < targetLine) && (offset < _contents.length)){
-			if (_contents[offset] == LanguageCFamily.NEWLINE){
+			if (_contents[offset] == Language.NEWLINE){
 				++workingLine;
 			}
 			++offset;
@@ -178,7 +195,7 @@ public class TextBuffer {
 			}
 			--offset;
 
-			if (_contents[offset] == LanguageCFamily.NEWLINE){
+			if (_contents[offset] == Language.NEWLINE){
 				--workingLine;
 			}
 
@@ -201,8 +218,10 @@ public class TextBuffer {
 
 	/**
 	 * Get the line number that charOffset is on
+	 * 
+	 * @return The line number that charOffset is on, or -1 if charOffset is invalid
 	 */
-	synchronized public int getLineIndex(int charOffset){
+	synchronized public int findLineNumber(int charOffset){
 		if(!isValid(charOffset)){
 			return -1;
 		}
@@ -217,7 +236,7 @@ public class TextBuffer {
 		if (targetOffset > offset){
 			// search forward
 			while((offset < targetOffset) && (offset < _contents.length)){			
-				if (_contents[offset] == LanguageCFamily.NEWLINE){
+				if (_contents[offset] == Language.NEWLINE){
 					++line;
 					lastKnownLine = line;
 					lastKnownCharOffset = realToLogicalIndex(offset) + 1;
@@ -239,7 +258,7 @@ public class TextBuffer {
 				}
 				--offset;
 				
-				if (_contents[offset] == LanguageCFamily.NEWLINE){
+				if (_contents[offset] == Language.NEWLINE){
 					lastKnownLine = line;
 					lastKnownCharOffset = realToLogicalIndex(offset) + 1;
 					--line;
@@ -266,17 +285,17 @@ public class TextBuffer {
 	 * All valid lines contain at least one char, which may be a non-printable
 	 * one like \n, \t or EOF.
 	 * 
-	 * @return The number of chars in targetLine, or 0 if the line does not exist.
+	 * @return The number of chars in lineNumber, or 0 if the line does not exist.
 	 */
-	synchronized public int getLineLength(int targetLine){
+	synchronized public int getLineSize(int lineNumber){
 		int lineLength = 0;
-		int pos = getCharOffset(targetLine);
+		int pos = getLineOffset(lineNumber);
 		
 		if (pos != -1){
 			pos = logicalToRealIndex(pos);
 			//TODO consider adding check for (pos < _contents.length) in case EOF is not properly set
-			while(_contents[pos] != LanguageCFamily.NEWLINE &&
-			 _contents[pos] != LanguageCFamily.EOF){
+			while(_contents[pos] != Language.NEWLINE &&
+			 _contents[pos] != Language.EOF){
 				++lineLength;
 				++pos;
 				
@@ -305,17 +324,17 @@ public class TextBuffer {
 	/**
 	 * Gets up to maxChars number of chars starting at charOffset
 	 * 
-	 * @return The chars starting from charOffset, up to a maximum of maxChars, 
-	 * 		or an empty array if charOffset is invalid
+	 * @return The chars starting from charOffset, up to a maximum of maxChars. 
+	 * 		An empty array is returned if charOffset is invalid or maxChars is
+	 *		non-positive.
 	 */
 	synchronized public char[] subSequence(int charOffset, int maxChars){
-		if(!isValid(charOffset)){
+		if(!isValid(charOffset) || maxChars <= 0){
 			return new char[0];
 		}
 		int totalChars = maxChars;
-		if((charOffset + totalChars) > (getTextLength()-1)){
-			// -1 to exclude terminal EOF
-			totalChars = getTextLength() - charOffset - 1;
+		if((charOffset + totalChars) > getTextLength()){
+			totalChars = getTextLength() - charOffset;
 		}
 		int realIndex = logicalToRealIndex(charOffset);
 		char[] chars = new char[totalChars];
@@ -350,20 +369,14 @@ public class TextBuffer {
 	/**
 	 * Insert all characters in c into position charOffset.
 	 * 
-	 * If charOffset is invalid, nothing happens.
+	 * No error checking is done
 	 */
-	public void insert(char[] c, int charOffset, long timestamp){
-		if(!isValid(charOffset) || c.length == 0){
-			return;
+	public synchronized void insert(char[] c, int charOffset, long timestamp,
+			boolean undoable){
+		if(undoable){
+			_undoStack.captureInsert(charOffset, c.length, timestamp);
 		}
-		_undoStack.captureInsert(charOffset, c.length, timestamp);
-		realInsert(c, charOffset);
-	}
-	
-	/*
-	 * Not private to allow access by UndoStack
-	 */
-	synchronized void realInsert(char[] c, int charOffset){
+
 		int insertIndex = logicalToRealIndex(charOffset);
 		
 		// shift gap to insertion point
@@ -381,7 +394,7 @@ public class TextBuffer {
 		}
 
 		for (int i = 0; i < c.length; ++i){
-			if(c[i] == LanguageCFamily.NEWLINE){
+			if(c[i] == Language.NEWLINE){
 				++_lineCount;
 			}
 			_contents[_gapStartIndex] = c[i];
@@ -392,22 +405,17 @@ public class TextBuffer {
 	}
 	
 	/**
-	 * Deletes up to maxChars number of char starting from position charOffset, inclusive.
-	 * If charOffset is invalid, or maxChars is not positive, nothing happens.
+	 * Deletes up to totalChars number of char starting from position 
+	 * charOffset, inclusive.
+	 * 
+	 * No error checking is done
 	 */
-	public void delete(int charOffset, int maxChars, long timestamp){
-		if(!isValid(charOffset) || maxChars <= 0){
-			return;
+	public synchronized void delete(int charOffset, int totalChars, long timestamp,
+			boolean undoable){
+		if(undoable){
+			_undoStack.captureDelete(charOffset, totalChars, timestamp);
 		}
-		_undoStack.captureDelete(charOffset, maxChars, timestamp);
-		realDelete(charOffset, maxChars);
-	}
-
-	/*
-	 * Not private to allow access by UndoStack
-	 */
-	synchronized void realDelete(int charOffset, int maxChars){
-		int totalChars = Math.min(maxChars, getTextLength() - charOffset);
+		
 		int newGapStart = charOffset + totalChars;
 		
 		// shift gap to deletion point
@@ -423,7 +431,7 @@ public class TextBuffer {
 		// increase gap size
 		for(int i = 0; i < totalChars; ++i){
 			--_gapStartIndex;
-			if(_contents[_gapStartIndex] == LanguageCFamily.NEWLINE){
+			if(_contents[_gapStartIndex] == Language.NEWLINE){
 				--_lineCount;
 			}
 		}
@@ -454,7 +462,7 @@ public class TextBuffer {
 	private int countNewlines(int start, int totalChars){
 		int newlines = 0;
 		for(int i = start; i < (start + totalChars); ++i){
-			if(_contents[i] == LanguageCFamily.NEWLINE){
+			if(_contents[i] == Language.NEWLINE){
 				++newlines;
 			}
 		}
@@ -490,7 +498,7 @@ public class TextBuffer {
 	 */
 	protected void initGap(int contentsLength){
 		int toPosition = _contents.length - 1;
-		_contents[toPosition--] = LanguageCFamily.EOF; // mark end of file
+		_contents[toPosition--] = Language.EOF; // mark end of file
 		int fromPosition = contentsLength - 1;
 		while(fromPosition >= 0){
 			_contents[toPosition--] = _contents[fromPosition--];
@@ -535,18 +543,12 @@ public class TextBuffer {
 		return _contents.length - gapSize();
 	}
 
-	final synchronized public int getLineCount(){
+	synchronized public int getLineCount(){
 		return _lineCount;
 	}
 	
 	final synchronized public boolean isValid(int charOffset){
-		if(charOffset >= 0 && charOffset < getTextLength()){
-			return true;
-		}
-		
-		TextWarriorException.assertVerbose(false,
-				"Invalid charOffset given to TextBuffer");
-		return false;
+		return (charOffset >= 0 && charOffset < getTextLength());
 	}
 	
 	final protected int gapSize(){

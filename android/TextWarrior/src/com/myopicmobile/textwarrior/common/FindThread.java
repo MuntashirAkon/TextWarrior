@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Tah Wei Hoon.
+ * Copyright (c) 2013 Tah Wei Hoon.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License Version 2.0,
  * with full text available at http://www.apache.org/licenses/LICENSE-2.0.html
@@ -13,7 +13,7 @@ import java.util.Vector;
 
 /**
  * Worker thread to carry our find and replaceAll operations.
- * The find thread should not be reused after it has completed. Create a new one 
+ * The find thread should not be reused after it has completed. Create a new one
  * for another operation.
  */
 public class FindThread extends Thread implements ProgressSource{
@@ -21,19 +21,19 @@ public class FindThread extends Thread implements ProgressSource{
 	protected DocumentProvider _src;
 	protected Vector<ProgressObserver> _progressObservers =
 		new Vector<ProgressObserver>();
-	
+
 	final private SearchStrategy FINDER = new LinearSearchStrategy();
-	
+
 	static public FindThread createFindThread(DocumentProvider src,
 			String searchText, int start, boolean isForwardSearch,
 			boolean isCaseSensitive, boolean isWholeWord){
-		
+
 		int requestCode = (isForwardSearch) ? ProgressSource.FIND : ProgressSource.FIND_BACKWARDS;
-		
+
 		return new FindThread(requestCode, src, searchText, start, isCaseSensitive,
 				isWholeWord);
 	}
-	
+
 	private FindThread(int requestCode, DocumentProvider src,
 			String searchText, int start,
 			boolean isCaseSensitive, boolean isWholeWord){
@@ -45,7 +45,7 @@ public class FindThread extends Thread implements ProgressSource{
         _isWholeWord = isWholeWord;
         _docSize = src.docLength();
 	}
-	
+
 	static public FindThread createReplaceAllThread(DocumentProvider src,
 			String searchText, String replacementText, int start,
 			boolean isCaseSensitive, boolean isWholeWord){
@@ -58,7 +58,7 @@ public class FindThread extends Thread implements ProgressSource{
 				isCaseSensitive,
 				isWholeWord);
 	}
-	
+
 	private FindThread(int requestCode, DocumentProvider src,
 			String searchText, String replacementText, int start,
 			boolean isCaseSensitive, boolean isWholeWord){
@@ -71,11 +71,12 @@ public class FindThread extends Thread implements ProgressSource{
         _isWholeWord = isWholeWord;
         _docSize = src.docLength();
 	}
-	
+
+	@Override
 	public void run(){
 		_isDone = false;
 		_results = new FindResults(_searchText.length());
-		
+
 		switch(_requestCode){
 		case ProgressSource.FIND:
 			_results.foundOffset = FINDER.wrappedFind(
@@ -108,13 +109,12 @@ public class FindThread extends Thread implements ProgressSource{
 	    	notifyComplete(_results);
 			break;
 		default:
-			TextWarriorException.assertVerbose(false,
-			 "Invalid request code for FindThread");
+			TextWarriorException.fail("Invalid request code for FindThread");
 			break;
 		}
 	}
-	
-	
+
+
 	/** Reported progress will be scaled from 0 to MAX_PROGRESS */
 	private final static int MAX_PROGRESS = 100;
 	private int _docSize = 0; // size, in chars, of the document to search
@@ -166,7 +166,7 @@ public class FindThread extends Thread implements ProgressSource{
 	public final int getRequestCode(){
 		return _requestCode;
 	}
-	
+
 	public final FindResults getResults(){
 		return _results;
 	}
@@ -179,16 +179,16 @@ public class FindThread extends Thread implements ProgressSource{
 	protected boolean _isWholeWord;
 	protected boolean _isDone = false;
 	protected FindResults _results;
-	
+
 	public static class FindResults{
 		public int foundOffset = -1;
 		public int replacementCount = 0;
 		public int newStartPosition = 0;
 		public int searchTextLength = 0; //for convenience
-		
+
 		public FindResults(int searchLength){
 			searchTextLength = searchLength;
 		}
 	}
-	
+
 }

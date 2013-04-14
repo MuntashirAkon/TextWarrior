@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Tah Wei Hoon.
+ * Copyright (c) 2013 Tah Wei Hoon.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License Version 2.0,
  * with full text available at http://www.apache.org/licenses/LICENSE-2.0.html
@@ -11,8 +11,8 @@ package com.myopicmobile.textwarrior.common;
 /**
  * Singleton class containing the symbols and operators of the Ruby language
  */
-public class LanguageRuby extends LanguageCFamily {
-	private static LanguageCFamily _theOne = null;
+public class LanguageRuby extends Language {
+	private static Language _theOne = null;
 	
 	private final static String[] keywords = {
 		"alias", "and", "BEGIN", "begin", "break", "case", "catch", "class", "def",
@@ -49,7 +49,7 @@ public class LanguageRuby extends LanguageCFamily {
 		return false;
 	}
 	
-	public static LanguageCFamily getCharacterEncodings(){
+	public static Language getInstance(){
 		if(_theOne == null){
 			_theOne = new LanguageRuby();
 		}
@@ -57,6 +57,6 @@ public class LanguageRuby extends LanguageCFamily {
 	}
 	
 	private LanguageRuby(){
-		super.registerKeywords(keywords);
+		super.setKeywords(keywords);
 	}
 }
