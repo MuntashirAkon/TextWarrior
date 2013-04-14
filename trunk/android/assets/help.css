@@ -1,0 +1,17 @@
+body { font-family: Arial, Helvetica, sans-serif; font-size: 14px;
+  color: #444444; background: #ffffff; }
+
+h2 { font-size:120%; color:#ffffff; background: #444444; padding: 4px 0 3px 4px; 
+  margin-top: 4px; }
+
+h3 { font-size:120%; margin: 0 0 2px 0; }
+
+h4 { font-size:110%; }
+
+.subsection { margin-bottom: 36px; }
+
+.code { font-family: "Courier New", Courier, monospace; font-size: 85%; }
+
+ul { padding: 4px 24px 10px 24px; }
+
+ul li { padding: 2px 0 2px 0; }

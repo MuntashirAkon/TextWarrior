@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 
+	Copyright (c) 2013 Tah Wei Hoon.
+	All rights reserved. This program and the accompanying materials
+	are made available under the terms of the Apache License Version 2.0,
+	with full text available at http://www.apache.org/licenses/LICENSE-2.0.html
+
+	This software is provided "as is". Use at your own risk.
+ -->
+
+<resources>
+
+	<string name="dialog_confirm_overwrite">Diese Datei existiert bereits. Wollen Sie diese überschreiben?</string>
+	<string name="dialog_prompt_save">Änderungen speichern?</string>
+	<string name="dialog_file_save_success">Datei gespeichert</string>
+	<string name="dialog_find_no_results">Keine Ergebnisse gefunden</string>
+	<string name="dialog_replace_all_result">Ersetzungen:\u0020</string>
+	<string name="dialog_replace_no_selection">Keine markierten Text um zu ersetzen</string>
+	<string name="dialog_go_to_line">Gehe zu Zeile</string>
+	<string name="dialog_go_to_line_text_hint">Zeilennummer</string>
+	<string name="dialog_recent_files">@string/menu_recent_files</string>
+	<string name="dialog_recent_files_none">Es gibt keine Dateien, die vor kurzem geöffnet werden.</string>
+	<string name="dialog_statistics">Eigenschaften</string>
+	<string name="dialog_statistics_words">Wörte</string>
+	<string name="dialog_statistics_chars">Schriftzeichen</string>
+	<string name="dialog_statistics_no_whitespace">Schriftzeichen (ohne Leerzeichen)</string>
+	<string name="dialog_statistics_rows">Zeilen (ohne Zeilenumbruch)</string>
+	<string name="dialog_statistics_format">Originale Kodierung</string>
+	<string name="dialog_statistics_line_terminator_style">Originales Zeilenende</string>
+	<string name="dialog_about">Über TextWarrior</string>
+	<string name="dialog_button_discard">Verwerfen</string>
+	<string name="dialog_button_overwrite">Überschreiben</string>
+	<string name="dialog_button_go_back">Zurück</string>
+	<string name="dialog_button_save">@string/menu_save</string>
+	<string name="dialog_button_save_different_name">Speichern unter anderem Namen</string>
+	<string name="dialog_error_file_open">Fehler beim Öffnen der Datei:\u0020</string>
+	<string name="dialog_error_file_save">Fehler beim Speichern der Datei:\u0020</string>
+	<string name="dialog_error_not_a_file">Der ausgewählte Name bezieht sich auf ein Verzeichnis. Datei bitte unter anderem Namen speichern.</string>
+	<string name="dialog_error_attempt_overwrite_read_only">Die ausgewählte Datei ist schreibgeschützt.</string>
+	<string name="dialog_error_attempt_overwrite_recovery">Datei in einem Backup-Verzeichnis. Speichern verboten.</string>
+	<string name="dialog_error_no_file_name">Der Datei-Name darf nicht leer sein.</string>
+	<string name="dialog_error_file_write_denied">Das ausgewählte Verzeichnis ist schreibgeschützt.</string>
+	<string name="dialog_sorry">Tut uns leid.</string>
+	<string name="dialog_sorry_force_resume">TextWarrior wurde unerwartet beendet,
+		um Ressourcen zu erhalten.</string>
+	<string name="dialog_sorry_backup_disabled">Ungesicherte Änderungen sind
+		veloren gegangen. Bitte aktivieren in Zukunft Auto-Backup.</string>
+	<string name="dialog_sorry_missing_recovery">Das backup war nicht gefunden.\u000A
+		\u000ASchauen Sie baldmöglich das Verzeichnis \"%1$s\". Weitere Informationen
+		finden Sie in \"Hilfe \u2192 Backup und Datenwiederherstellung\".</string>
+	<string name="dialog_sorry_read_error">Ein Backup würde in %1$s gemacht, falls
+		eine SD-Karte verfügbar war.\u000A
+		\u000ABitten kopieren Sie baldmöglich dieses Backup-Datei. Weitere Informationen
+		finden Sie in \"Hilfe \u2192 Backup und Datenwiederherstellung\".</string>
+	<string name="dialog_sorry_write_error">Das Backup war erfolglos. Ungesicherte
+		Änderungen sind veloren gegangen. \u000A
+		\u000ABitte versichern Sie, dass der Speicherplatz ausreichend für das Backup
+		der Datei ist.</string>
+	<string name="progress_dialog_find">Jetzt suchen&#8230;</string>
+	<string name="progress_dialog_replace">Jetzt ersetzen&#8230;</string>
+	<string name="progress_dialog_analyze">Jetzt analysieren&#8230;</string>
+	<string name="progress_dialog_open">Jetzt öffnen&#8230;</string>
+	<string name="progress_dialog_save">Jetzt speichern&#8230;</string>
+	<string name="progress_dialog_message">Bitte warten Sie&#8230;</string>
+
+	<string name="file_picker_inform_empty">Dieses Verzeichnis ist leer.</string>
+	<string name="file_picker_title_pick_file">Wählen Sie eine Datei aus</string>
+	<string name="file_picker_title_enter_filename">Speichern unter</string>
+	<string name="file_picker_label_save">@string/menu_save</string>
+	<string name="file_picker_file_not_found">Nicht verfügbar</string>
+	
+	<string name="find_panel_find_label">Suchen</string>
+	<string name="find_panel_replace_label">Ersetzen</string>
+	<string name="find_panel_options">Suchoptionen</string>
+	<string name="find_panel_case_sensitive">Groß-/Kleinschreibung</string>
+	<string name="find_panel_match_whole_word">Ganzes Wort</string>
+	
+	<string name="title">TextWarrior</string>
+	<string name="help_title">TextWarrior Hilfe</string>
+
+	<string name="menu_about">Über</string>
+	<string name="menu_change_input_method">Eingabemethode</string>
+	<string name="menu_find_panel_toggle">Suche/Ersetze</string>
+	<string name="menu_go_to_line">Gehe zu Zeile&#8230;</string>
+	<string name="menu_help">Hilfe</string>
+	<string name="menu_new">Neu</string>
+	<string name="menu_open">Öffnen</string>
+	<string name="menu_recent_files">Dateiverlauf</string>
+	<string name="menu_save">Speichern</string>
+	<string name="menu_save_as">Speichern unter&#8230;</string>
+	<string name="menu_select_all">Alles selektieren</string>
+	<string name="menu_statistics">Wortzählung und Eigenschaften</string>
+	<string name="menu_settings">Optionen</string>
+	<string name="menu_undo">Rückgängig</string>
+	<string name="menu_redo">Wiederholen</string>
+
+
+	<string name="settings_title">TextWarrior Optionen</string>
+	<string name="settings_group_view">Ansicht</string>
+	<string name="settings_group_navigation">Navigation</string>
+	<string name="settings_group_formatting">Formatierung</string>
+	<string name="settings_group_io">Öffnen und speichern</string>
+	<string name="settings_group_text_selection">Text Selektion</string>
+
+	<string name="settings_label_auto_backup">Auto-Backup</string>
+	<string name="settings_desc_auto_backup"></string>
+	<string name="settings_label_auto_close_clipboard">Zw.ablage auto-schließen</string>
+	<string name="settings_desc_auto_close_clipboard">Zwischenablage verstecken wenn Selektion aufgehoben wird</string>
+	<string name="settings_label_auto_display_keyboard">Tastatur auto-zeigen</string>
+	<string name="settings_desc_auto_display_keyboard">Virtuelle-Tastatur zeigen beim Druck auf Display</string>
+	<string name="settings_label_auto_indent">Auto-einziehen</string>
+	<string name="settings_desc_auto_indent"></string>
+	<string name="settings_label_auto_open_clipboard">Zw.ablage auto-öffnen</string>
+	<string name="settings_desc_auto_open_clipboard">Zwischenablage zeigen wenn Selektion gemacht wird</string>
+	<string name="settings_label_chirality">Links/Rechtshändig</string>
+	<string name="settings_desc_chirality"></string>
+	<string name="settings_label_color_scheme">Farbschema</string>
+	<string name="settings_desc_color_scheme"></string>
+	<string name="settings_label_drag_select">Ziehung macht Selektion</string>
+	<string name="settings_desc_drag_select">Text selektieren wenn Cursor gezogen wird</string>
+	<string name="settings_label_file_input_format">Eingabekodierung</string>
+	<string name="settings_desc_file_input_format"></string>
+	<string name="settings_label_file_output_format">Ausgabekodierung</string>
+	<string name="settings_desc_file_output_format"></string>
+	<string name="settings_label_font">Schrift</string>
+	<string name="settings_desc_font"></string>
+	<string name="settings_label_highlight_current_row">Zeile unterstreichen</string>
+	<string name="settings_label_line_terminator_style">Zeilenende</string>
+	<string name="settings_desc_line_terminator_style"></string>
+	<string name="settings_label_long_press_capitalize">Großschr. bei langem Druck</string>
+	<string name="settings_desc_long_press_capitalize">Großschreiben bei langem Druck des eingebauter Tastatur</string>
+	<string name="settings_label_navigation_method">Cursorsteuerung</string>
+	<string name="settings_desc_navigation_method">Weitere Informationen im Hilftext</string>
+	<string name="settings_label_show_nonprinting">Nicht bedruckbare Symbole</string>
+	<string name="settings_desc_show_nonprinting">Zeigen Leerzeichen, Tab und Zeilenende</string>
+	<string name="settings_label_show_row_number">Zeilennummer zeigen</string>
+	<string name="settings_desc_show_row_number"></string>
+	<string name="settings_label_syntax_color">Syntaxfarbe</string>
+	<string name="settings_desc_syntax_color">Wörte von Programierungsprachen markieren</string>
+	<string name="settings_label_tab_spaces">Tab-Breite</string>
+	<string name="settings_desc_tab_spaces">Anzahl der Leerstellen pro Tab</string>
+	<string name="settings_label_word_wrap">Zeilenumbruch</string>
+	<string name="settings_desc_word_wrap"></string>
+	<string name="settings_label_zoom_size">@string/settings_key_zoom_size</string>
+	<string name="settings_desc_zoom_size"></string>
+
+
+	<string-array
+		name="settings_entries_chirality">
+		<item>Rechtshändig</item>
+		<item>Linkshändig</item>
+	</string-array>
+
+	<string-array
+		name="settings_entries_color_scheme">
+		<item>Hell</item>
+		<item>Dunkel</item>
+		<item>Solarized (hell)</item>
+		<item>Solarized (dunkel)</item>
+		<item>@string/settings_color_scheme_obsidian</item>
+	</string-array>
+
+	<string-array
+		name="settings_entries_font">
+		<item>Voreinstellung: serifenlose</item>
+		<item>Voreinstellung: serife</item>
+		<item>Voreinstellung: feste Breite</item>
+		<item>@string/settings_font_bitstream_vera</item>
+		<item>@string/settings_font_proggy_clean</item>
+	</string-array>
+
+	<string-array
+		name="settings_entries_navigation_method">
+		<item>Einfach</item>
+		<item>Tastfeld</item>
+		<item>Jo-jo</item>
+		<item>Flüssigkeit</item>
+		<item>Lautstärketasten</item>
+	</string-array>
+
+	<string-array
+		name="settings_entries_syntax_color">
+		<item>Keine</item>
+		<item>@string/settings_syntax_c</item>
+		<item>@string/settings_syntax_cpp</item>
+		<item>@string/settings_syntax_csharp</item>
+		<item>@string/settings_syntax_java</item>
+		<item>@string/settings_syntax_javascript</item>
+		<item>@string/settings_syntax_objc</item>
+		<item>@string/settings_syntax_php</item>
+		<item>@string/settings_syntax_python</item>
+		<item>@string/settings_syntax_ruby</item>
+	</string-array>
+
+
+	<!-- Reserved for future use
+	<string name="dialog_save_file_error_recovery_tips">Versichern Sie ob der Speicherplatz von Ihrem Gerat ausreichend ist.</string>
+	<string name="dialog_error_out_of_memory">Nicht genug Speicher.</string>
+	<string name="dialog_argh">Aah!!</string>
+	 -->
+</resources>
