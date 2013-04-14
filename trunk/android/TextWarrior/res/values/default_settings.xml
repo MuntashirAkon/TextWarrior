@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<bool name="settings_auto_backup_default">true</bool>
+	<bool name="settings_auto_close_clipboard_default">true</bool>
+	<bool name="settings_auto_display_keyboard_default">true</bool>
+	<bool name="settings_auto_indent_default">true</bool>
+	<bool name="settings_auto_open_clipboard_default">true</bool>
+	<bool name="settings_drag_select_default">true</bool>
+	<bool name="settings_highlight_current_row_default">false</bool>
+	<bool name="settings_long_press_capitalize_default">false</bool>
+	<bool name="settings_show_nonprinting_default">false</bool>
+	<bool name="settings_show_row_number_default">false</bool>
+	<bool name="settings_word_wrap_default">true</bool>
+	
+	<string name="settings_chirality_default" translatable="false">@string/settings_chirality_right</string>
+	<string name="settings_color_scheme_default" translatable="false">@string/settings_color_scheme_light</string>
+	<string name="settings_file_input_format_default" translatable="false">Auto</string>
+	<string name="settings_file_output_format_default" translatable="false">Auto</string>
+	<string name="settings_font_default" translatable="false">@string/settings_font_sans_serif</string>
+	<string name="settings_line_terminator_style_default" translatable="false">Auto</string>
+	<string name="settings_navigation_method_default" translatable="false">@string/settings_navigation_method_trackpad</string>
+	<string name="settings_syntax_color_default" translatable="false">@string/settings_syntax_none</string>
+	<string name="settings_tab_spaces_default" translatable="false">4</string>
+	<string name="settings_zoom_size_default" translatable="false">100</string>
+</resources>
