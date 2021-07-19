@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.myopicmobile.textwarrior.android">
+
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
+    <uses-permission android:name="android.permission.VIBRATE"/>
+
+    <application
+        android:allowBackup="false"
+        android:icon="@drawable/icon"
+        android:label="@string/title"
+        android:requestLegacyExternalStorage="true">
+
+        <activity
+            android:name=".TextWarriorApplication"
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="stateUnchanged|adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.EDIT" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data
+					android:mimeType="text/*"
+                    android:scheme="file" />
+            </intent-filter>
+        </activity>
+		<activity android:name=".FilePicker" />
+		<activity
+			android:name=".TextWarriorSettings"
+			android:label="@string/settings_title" />
+		<activity
+			android:name=".TextWarriorHelp"
+			android:label="@string/help_title" />
+
+    </application>
+
+</manifest>
