@@ -11,35 +11,35 @@ package com.myopicmobile.textwarrior.common;
 /**
  * Singleton class containing the symbols and operators of the Java language
  */
-public class LanguageJava extends Language{
-	private static Language _theOne = null;
-	
-	private final static String[] keywords = {
-		"void", "boolean", "byte", "char", "short", "int", "long", "float", "double", "strictfp",
-		"import", "package", "new", "class", "interface", "extends", "implements", "enum",
-		"public", "private", "protected", "static", "abstract", "final", "native", "volatile",
-		"assert", "try", "throw", "throws", "catch", "finally", "instanceof", "super", "this",
-		"if", "else", "for", "do", "while", "switch", "case", "default",
-		"continue", "break", "return", "synchronized", "transient",
-		"true", "false", "null"
-		};
+public class LanguageJava extends Language {
+    private static Language _theOne = null;
+
+    private final static String[] keywords = {
+            "void", "boolean", "byte", "char", "short", "int", "long", "float", "double", "strictfp",
+            "import", "package", "new", "class", "interface", "extends", "implements", "enum",
+            "public", "private", "protected", "static", "abstract", "final", "native", "volatile",
+            "assert", "try", "throw", "throws", "catch", "finally", "instanceof", "super", "this",
+            "if", "else", "for", "do", "while", "switch", "case", "default",
+            "continue", "break", "return", "synchronized", "transient",
+            "true", "false", "null"
+    };
 
 
-	public static Language getInstance(){
-		if(_theOne == null){
-			_theOne = new LanguageJava();
-		}
-		return _theOne;
-	}
-	
-	private LanguageJava(){
-		super.setKeywords(keywords);
-	}
-	
-	/**
-	 * Java has no preprocessors. Override base class implementation
-	 */
-	public boolean isLineAStart(char c){
-		return false;
-	}
+    public static Language getInstance() {
+        if (_theOne == null) {
+            _theOne = new LanguageJava();
+        }
+        return _theOne;
+    }
+
+    private LanguageJava() {
+        super.setKeywords(keywords);
+    }
+
+    /**
+     * Java has no preprocessors. Override base class implementation
+     */
+    public boolean isLineAStart(char c) {
+        return false;
+    }
 }

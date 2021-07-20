@@ -13,73 +13,64 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 
-public class WriteThread extends FileIOThread{
-	private DocumentProvider _hDoc;
-	// reported progress will be scaled from 0 to MAX_PROGRESS
-	private final static int MAX_PROGRESS = 100;
-	
-	public WriteThread(File file, DocumentProvider hDoc,
-	String encoding, String EOLchar){
-		super(file, encoding, EOLchar);
-		_hDoc = hDoc;
-		_totalChar = _hDoc.docLength();
-		TextWarriorException.assertVerbose(_totalChar > 0,
-				 "File to save must have at least 1 char");
-	}
+public class WriteThread extends FileIOThread {
+    private final DocumentProvider _hDoc;
+    // reported progress will be scaled from 0 to MAX_PROGRESS
+    private final static int MAX_PROGRESS = 100;
 
-	public void run(){
-		_isDone = false;
-		_abortFlag.clear();
-		
-		try{
-			realWrite();
-		}
-		catch (IOException ex) {
-			broadcastError(ProgressSource.WRITE,
-				ERROR_UNKNOWN, ex.getLocalizedMessage());
-	    }
-	}
+    public WriteThread(File file, DocumentProvider hDoc, String encoding, String EOLchar) {
+        super(file, encoding, EOLchar);
+        _hDoc = hDoc;
+        _totalChar = _hDoc.docLength();
+        TextWarriorException.assertVerbose(_totalChar > 0,
+                "File to save must have at least 1 char");
+    }
 
-	private void realWrite() throws IOException{
-		FileOutputStream fs = new FileOutputStream(_file);
+    public void run() {
+        _isDone = false;
+        _abortFlag.clear();
 
-		try{
-			resolveAutoEncodingAndEOL();
-	        _converter.writeAndConvert(fs, _hDoc, _encoding, _EOLchar, _abortFlag);
+        try {
+            realWrite();
+        } catch (IOException ex) {
+            broadcastError(ProgressSource.WRITE,
+                    ERROR_UNKNOWN, ex.getLocalizedMessage());
+        }
+    }
 
-	        if(!_abortFlag.isSet()){
-				_isDone = true;
-            	broadcastComplete(ProgressSource.WRITE);
-	        }
-            else{
-            	broadcastCancel(ProgressSource.WRITE);
+    private void realWrite() throws IOException {
+        try (FileOutputStream fs = new FileOutputStream(_file)) {
+            resolveAutoEncodingAndEOL();
+            _converter.writeAndConvert(fs, _hDoc, _encoding, _EOLchar, _abortFlag);
+
+            if (!_abortFlag.isSet()) {
+                _isDone = true;
+                broadcastComplete(ProgressSource.WRITE);
+            } else {
+                broadcastCancel(ProgressSource.WRITE);
             }
-		}
-		finally{
-			fs.close();
-		}
-	}
+        }
+    }
 
-	private void resolveAutoEncodingAndEOL() {
-		if (_encoding.equals(EncodingScheme.TEXT_ENCODING_AUTO)){
-			_encoding = _hDoc.getEncodingScheme();
-		}
-		if(_EOLchar.equals(EncodingScheme.LINE_BREAK_AUTO)){
-			_EOLchar = _hDoc.getEOLType();
-		}
-	}
+    private void resolveAutoEncodingAndEOL() {
+        if (_encoding.equals(EncodingScheme.TEXT_ENCODING_AUTO)) {
+            _encoding = _hDoc.getEncodingScheme();
+        }
+        if (_EOLchar.equals(EncodingScheme.LINE_BREAK_AUTO)) {
+            _EOLchar = _hDoc.getEOLType();
+        }
+    }
 
-	@Override
-	public int getMax(){
-		return MAX_PROGRESS;
-	}
+    @Override
+    public int getMax() {
+        return MAX_PROGRESS;
+    }
 
-	@Override
-	public int getCurrent(){
-		double progressProportion = (double) _converter.getProgress()
-				/ (double) _totalChar;
-		return (int) (progressProportion * MAX_PROGRESS);
-	}
-	
-	private int _totalChar = 0;
+    @Override
+    public int getCurrent() {
+        double progressProportion = (double) _converter.getProgress() / (double) _totalChar;
+        return (int) (progressProportion * MAX_PROGRESS);
+    }
+
+    private final int _totalChar;
 }

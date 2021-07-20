@@ -17,7 +17,7 @@ package org.openintents.filemanager;
  * limitations under the License.
  */
 
-/**
+/*
  * Dec 7, 2008: Peli: Use inflated layout.
  */
 
@@ -42,39 +42,39 @@ import com.myopicmobile.textwarrior.android.R;
 
 public class IconifiedTextView extends LinearLayout {
 
-	private final TextView mText;
-	private final TextView mInfo;
-	private final ImageView mIcon;
+    private final TextView mText;
+    private final TextView mInfo;
+    private final ImageView mIcon;
 
-	public IconifiedTextView(Context context){
-		super(context);
+    public IconifiedTextView(Context context) {
+        super(context);
 
-		// inflate rating
-		LayoutInflater inflater = (LayoutInflater) context
-				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        // inflate rating
+        LayoutInflater inflater = (LayoutInflater) context
+                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-		inflater.inflate(
-				R.layout.filelist_item, this, true);
+        inflater.inflate(
+                R.layout.filelist_item, this, true);
 
-		mIcon = (ImageView) findViewById(R.id.icon);
-		mText = (TextView) findViewById(R.id.text);
-		mInfo = (TextView) findViewById(R.id.info);
-	}
+        mIcon = findViewById(R.id.icon);
+        mText = findViewById(R.id.text);
+        mInfo = findViewById(R.id.info);
+    }
 
-	public IconifiedTextView(Context context, IconifiedText aIconifiedText) {
-		this(context);
-		setEnabled(aIconifiedText.isSelectable());
-	}
+    public IconifiedTextView(Context context, IconifiedText aIconifiedText) {
+        this(context);
+        setEnabled(aIconifiedText.isSelectable());
+    }
 
-	public void setText(String words) {
-		mText.setText(words);
-	}
+    public void setText(String words) {
+        mText.setText(words);
+    }
 
-	public void setInfo(String info) {
-		mInfo.setText(info);
-	}
+    public void setInfo(String info) {
+        mInfo.setText(info);
+    }
 
-	public void setIcon(Drawable bullet) {
-		mIcon.setImageDrawable(bullet);
-	}
+    public void setIcon(Drawable bullet) {
+        mIcon.setImageDrawable(bullet);
+    }
 }

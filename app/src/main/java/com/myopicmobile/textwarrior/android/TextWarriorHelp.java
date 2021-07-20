@@ -15,77 +15,78 @@ import android.os.Bundle;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-public class TextWarriorHelp extends Activity{
-	
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+public class TextWarriorHelp extends Activity {
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         setContentView(R.layout.help);
-        
-		WebView contents = (WebView) findViewById(R.id.help_content);
-		contents.getSettings().setBuiltInZoomControls(true);
-		contents.setWebViewClient(new EmailLinksClient(this));
 
-		contents.loadUrl(determineHelpFile());
-	}
+        WebView contents = findViewById(R.id.help_content);
+        contents.getSettings().setBuiltInZoomControls(true);
+        contents.setWebViewClient(new EmailLinksClient(this));
 
-	private String determineHelpFile(){
-		String lang = getResources().getConfiguration().locale.getLanguage();
+        contents.loadUrl(determineHelpFile());
+    }
+
+    private String determineHelpFile() {
+        String lang = getResources().getConfiguration().locale.getLanguage();
         String helpFile;
-        
+
         //I hate hard-coding
-        if(lang.equals("fr")){
-        	helpFile = "file:///android_asset/help_fr.html";
+        switch (lang) {
+            case "fr":
+                helpFile = "file:///android_asset/help_fr.html";
+                break;
+            case "es":
+                helpFile = "file:///android_asset/help_es.html";
+                break;
+            case "de":
+                helpFile = "file:///android_asset/help_de.html";
+                break;
+            case "zh":
+                String country = getResources().getConfiguration().locale.getCountry();
+                if (country.equals("TW") || country.equals("HK")) {
+                    helpFile = "file:///android_asset/help_zh_tw.html";
+                } else {
+                    helpFile = "file:///android_asset/help_zh_cn.html";
+                }
+                break;
+            default:
+                helpFile = "file:///android_asset/help.html";
+                break;
         }
-        else if(lang.equals("es")){
-        	helpFile = "file:///android_asset/help_es.html";
+        return helpFile;
+    }
+
+
+    // mailto links don't work in WebView. This class fixes that.
+    private static class EmailLinksClient extends WebViewClient {
+        private final Activity _activity;
+
+        public EmailLinksClient(Activity context) {
+            _activity = context;
         }
-        else if(lang.equals("de")){
-        	helpFile = "file:///android_asset/help_de.html";
+
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            if (url.startsWith(MailTo.MAILTO_SCHEME)) {
+                MailTo mt = MailTo.parse(url);
+                Intent i = new Intent(Intent.ACTION_SEND);
+                i.setType("plain/text");
+                i.putExtra(Intent.EXTRA_EMAIL, new String[]{mt.getTo()});
+                i.putExtra(Intent.EXTRA_SUBJECT, mt.getSubject());
+                i.putExtra(Intent.EXTRA_CC, mt.getCc());
+                i.putExtra(Intent.EXTRA_TEXT, mt.getBody());
+                _activity.startActivity(Intent.createChooser(i, null));
+
+                // Apparently on some devices, the clicked link will fail to
+                // invalidate after being pressed, so refresh the page here
+                view.reload();
+                return true;
+            }
+            view.loadUrl(url);
+            return true;
         }
-        else if(lang.equals("zh")){
-        	String country =  getResources().getConfiguration().locale.getCountry();
-        	if(country.equals("TW") || country.equals("HK")){
-        		helpFile = "file:///android_asset/help_zh_tw.html";
-        	}
-        	else{
-            	helpFile = "file:///android_asset/help_zh_cn.html";
-        	}
-        }
-        else{
-        	helpFile = "file:///android_asset/help.html";
-        }
-		return helpFile;
-	}
-	
-	
-	// mailto links don't work in WebView. This class fixes that.
-	private class EmailLinksClient extends WebViewClient {
-		private Activity _activity;
-		
-		public EmailLinksClient(Activity context){
-		    _activity = context;
-		}
-		
-		@Override
-		public boolean shouldOverrideUrlLoading(WebView view, String url) {     
-		    if(url.startsWith(MailTo.MAILTO_SCHEME)){
-		        MailTo mt = MailTo.parse(url);
-		        Intent i = new Intent(Intent.ACTION_SEND);
-		        i.setType("plain/text");
-		        i.putExtra(Intent.EXTRA_EMAIL, new String[]{mt.getTo()});
-		        i.putExtra(Intent.EXTRA_SUBJECT, mt.getSubject());
-		        i.putExtra(Intent.EXTRA_CC, mt.getCc());
-		        i.putExtra(Intent.EXTRA_TEXT, mt.getBody());
-		        _activity.startActivity(Intent.createChooser(i, null));
-		        
-		        // Apparently on some devices, the clicked link will fail to
-		        // invalidate after being pressed, so refresh the page here
-		        view.reload();
-		        return true;
-		    }
-		    view.loadUrl(url);
-		    return true;
-		}
-	}
+    }
 }

@@ -12,32 +12,26 @@ package com.myopicmobile.textwarrior.android;
 
 import android.view.KeyEvent;
 
-public class VolumeKeysNavigationMethod extends TouchNavigationMethod{
-	public VolumeKeysNavigationMethod(FreeScrollingTextField textField){
-		super(textField);
-	}
-	
-	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if(keyCode == KeyEvent.KEYCODE_VOLUME_DOWN){
-			_textField.moveCaretLeft();
-			return true;
-		}
-		else if(keyCode == KeyEvent.KEYCODE_VOLUME_UP){
-			_textField.moveCaretRight();
-			return true;
-		}
-		
-		return false;
-	}
+public class VolumeKeysNavigationMethod extends TouchNavigationMethod {
+    public VolumeKeysNavigationMethod(FreeScrollingTextField textField) {
+        super(textField);
+    }
 
-	@Override
-	public boolean onKeyUp(int keyCode, KeyEvent event) {
-		if(keyCode == KeyEvent.KEYCODE_VOLUME_DOWN ||
-				keyCode == KeyEvent.KEYCODE_VOLUME_UP){
-			return true;
-		}
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            _textField.moveCaretLeft();
+            return true;
+        } else if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+            _textField.moveCaretRight();
+            return true;
+        }
 
-		return false;
-	}
+        return false;
+    }
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        return keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP;
+    }
 }

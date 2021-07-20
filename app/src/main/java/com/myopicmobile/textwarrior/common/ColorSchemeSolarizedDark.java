@@ -16,24 +16,24 @@ package com.myopicmobile.textwarrior.common;
  */
 public class ColorSchemeSolarizedDark extends ColorSchemeSolarizedLight {
 
-	public ColorSchemeSolarizedDark(){
-		setColor(Colorable.FOREGROUND, BASE0);
-		setColor(Colorable.BACKGROUND, BASE03);
-		setColor(Colorable.SELECTION_FOREGROUND, BASE03);
-		setColor(Colorable.SELECTION_BACKGROUND, BLUE);
-		setColor(Colorable.CARET_FOREGROUND, BASE03);
-		setColor(Colorable.CARET_BACKGROUND, RED);
-		setColor(Colorable.CARET_DISABLED, BASE01);
-		setColor(Colorable.LINE_HIGHLIGHT, MAGENTA);
-		setColor(Colorable.NON_PRINTING_GLYPH, BASE01);
-		setColor(Colorable.COMMENT, BASE01);
-		setColor(Colorable.KEYWORD, GREEN);
-		setColor(Colorable.LITERAL, VIOLET);
-		setColor(Colorable.SECONDARY, YELLOW);
-	}
+    public ColorSchemeSolarizedDark() {
+        setColor(Colorable.FOREGROUND, BASE0);
+        setColor(Colorable.BACKGROUND, BASE03);
+        setColor(Colorable.SELECTION_FOREGROUND, BASE03);
+        setColor(Colorable.SELECTION_BACKGROUND, BLUE);
+        setColor(Colorable.CARET_FOREGROUND, BASE03);
+        setColor(Colorable.CARET_BACKGROUND, RED);
+        setColor(Colorable.CARET_DISABLED, BASE01);
+        setColor(Colorable.LINE_HIGHLIGHT, MAGENTA);
+        setColor(Colorable.NON_PRINTING_GLYPH, BASE01);
+        setColor(Colorable.COMMENT, BASE01);
+        setColor(Colorable.KEYWORD, GREEN);
+        setColor(Colorable.LITERAL, VIOLET);
+        setColor(Colorable.SECONDARY, YELLOW);
+    }
 
-	@Override
-	public boolean isDark() {
-		return true;
-	}
+    @Override
+    public boolean isDark() {
+        return true;
+    }
 }

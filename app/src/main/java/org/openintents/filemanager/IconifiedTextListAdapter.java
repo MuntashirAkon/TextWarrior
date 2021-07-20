@@ -37,139 +37,155 @@ import android.widget.BaseAdapter;
 import android.widget.Filter;
 import android.widget.Filterable;
 
-/** @author Steven Osborn - http://steven.bitsetters.com */
+/**
+ * @author Steven Osborn - http://steven.bitsetters.com
+ */
 public class IconifiedTextListAdapter extends BaseAdapter implements Filterable {
 
-	/** Remember our context so we can use it when constructing views. */
-	private final Context mContext;
+    /**
+     * Remember our context so we can use it when constructing views.
+     */
+    private final Context mContext;
 
-	private static String lastFilter;
+    private static String lastFilter;
 
-	class IconifiedFilter extends Filter {
-		@Override
-		protected FilterResults performFiltering(CharSequence arg0) {
+    class IconifiedFilter extends Filter {
+        @Override
+        protected FilterResults performFiltering(CharSequence arg0) {
 
-			lastFilter = (arg0 != null) ? arg0.toString() : null;
+            lastFilter = (arg0 != null) ? arg0.toString() : null;
 
-			Filter.FilterResults results = new Filter.FilterResults();
+            Filter.FilterResults results = new Filter.FilterResults();
 
-			// No results yet?
-			if (mOriginalItems == null) {
-				results.count = 0;
-				results.values = null;
-				return results;
-			}
+            // No results yet?
+            if (mOriginalItems == null) {
+                results.count = 0;
+                results.values = null;
+                return results;
+            }
 
-			int count = mOriginalItems.size();
+            int count = mOriginalItems.size();
 
-			if (arg0 == null || arg0.length() == 0) {
-				results.count = count;
-				results.values = mOriginalItems;
-				return results;
-			}
-
-
-			List<IconifiedText> filteredItems = new ArrayList<IconifiedText>(count);
-
-			int outCount = 0;
-			CharSequence lowerCs = arg0.toString().toLowerCase(Locale.getDefault());
+            if (arg0 == null || arg0.length() == 0) {
+                results.count = count;
+                results.values = mOriginalItems;
+                return results;
+            }
 
 
-			for (int x=0; x<count; x++) {
-				IconifiedText text = mOriginalItems.get(x);
+            List<IconifiedText> filteredItems = new ArrayList<>(count);
 
-				if (text.getText().toLowerCase(Locale.getDefault()).contains(lowerCs)) {
-					// This one matches.
-					filteredItems.add(text);
-					outCount++;
-				}
-			}
-
-			results.count = outCount;
-			results.values = filteredItems;
-			return results;
-		}
-
-		@Override
-		@SuppressWarnings("unchecked")
-		protected void publishResults(CharSequence arg0, FilterResults arg1) {
-			mItems = (List<IconifiedText>) arg1.values;
-			notifyDataSetChanged();
-		}
-
-		@SuppressWarnings("unchecked")
-		List<IconifiedText> synchronousFilter(CharSequence filter) {
-			FilterResults results = performFiltering(filter);
-			return (List<IconifiedText>) (results.values);
-		}
-	}
-
-	private final IconifiedFilter mFilter = new IconifiedFilter();
+            int outCount = 0;
+            CharSequence lowerCs = arg0.toString().toLowerCase(Locale.getDefault());
 
 
-	private List<IconifiedText> mItems = new ArrayList<IconifiedText>();
-	private List<IconifiedText> mOriginalItems = new ArrayList<IconifiedText>();
+            for (IconifiedText text : mOriginalItems) {
+                if (text.getText().toLowerCase(Locale.getDefault()).contains(lowerCs)) {
+                    // This one matches.
+                    filteredItems.add(text);
+                    outCount++;
+                }
+            }
 
-	public IconifiedTextListAdapter(Context context) {
-		mContext = context;
-	}
+            results.count = outCount;
+            results.values = filteredItems;
+            return results;
+        }
 
-	public void addItem(IconifiedText it) { mItems.add(it); }
+        @Override
+        @SuppressWarnings("unchecked")
+        protected void publishResults(CharSequence arg0, FilterResults arg1) {
+            mItems = (List<IconifiedText>) arg1.values;
+            notifyDataSetChanged();
+        }
 
-	public void setListItems(List<IconifiedText> lit, boolean filter) {
-		mOriginalItems = lit;
+        @SuppressWarnings("unchecked")
+        List<IconifiedText> synchronousFilter(CharSequence filter) {
+            FilterResults results = performFiltering(filter);
+            return (List<IconifiedText>) (results.values);
+        }
+    }
 
-		if (filter) {
-			mItems = mFilter.synchronousFilter(lastFilter);
-		} else {
-			mItems = lit;
-		}
-	}
-
-	/** @return The number of items in the */
-	@Override
-	public int getCount() { return mItems.size(); }
-
-	@Override
-	public Object getItem(int position) { return mItems.get(position); }
-
-	public boolean areAllItemsSelectable() { return false; }
-
-	@Override
-	public boolean isEnabled(int position) {
-		try{
-			return mItems.get(position).isSelectable();
-		}catch (IndexOutOfBoundsException e){
-			throw new ArrayIndexOutOfBoundsException(position);
-		}
-	}
+    private final IconifiedFilter mFilter = new IconifiedFilter();
 
 
-	/** Use the array index as a unique id. */
-	@Override
-	public long getItemId(int position) {
-		return position;
-	}
+    private List<IconifiedText> mItems = new ArrayList<>();
+    private List<IconifiedText> mOriginalItems = new ArrayList<>();
 
-	/** @param convertView The old view to overwrite, if one is passed
-	 * @returns a IconifiedTextView that holds wraps around an IconifiedText */
-	@Override
-	public View getView(int position, View convertView, ViewGroup parent) {
-		IconifiedTextView btv;
-		if (convertView == null) {
-			btv = new IconifiedTextView(mContext, mItems.get(position));
-		} else { // Reuse/Overwrite the View passed
-			// We are assuming(!) that it is castable!
-			btv = (IconifiedTextView) convertView;
-		}
-		btv.setText(mItems.get(position).getText());
-		btv.setInfo(mItems.get(position).getInfo());
-		btv.setIcon(mItems.get(position).getIcon());
-		return btv;
-	}
+    public IconifiedTextListAdapter(Context context) {
+        mContext = context;
+    }
 
-	@Override
-	public Filter getFilter() {
-		return mFilter;
-	}
+    public void addItem(IconifiedText it) {
+        mItems.add(it);
+    }
+
+    public void setListItems(List<IconifiedText> lit, boolean filter) {
+        mOriginalItems = lit;
+
+        if (filter) {
+            mItems = mFilter.synchronousFilter(lastFilter);
+        } else {
+            mItems = lit;
+        }
+    }
+
+    /**
+     * @return The number of items in the
+     */
+    @Override
+    public int getCount() {
+        return mItems.size();
+    }
+
+    @Override
+    public Object getItem(int position) {
+        return mItems.get(position);
+    }
+
+    public boolean areAllItemsSelectable() {
+        return false;
+    }
+
+    @Override
+    public boolean isEnabled(int position) {
+        try {
+            return mItems.get(position).isSelectable();
+        } catch (IndexOutOfBoundsException e) {
+            throw new ArrayIndexOutOfBoundsException(position);
+        }
+    }
+
+
+    /**
+     * Use the array index as a unique id.
+     */
+    @Override
+    public long getItemId(int position) {
+        return position;
+    }
+
+    /**
+     * @param convertView The old view to overwrite, if one is passed
+     * @return a IconifiedTextView that holds wraps around an IconifiedText
+     */
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        IconifiedTextView btv;
+        if (convertView == null) {
+            btv = new IconifiedTextView(mContext, mItems.get(position));
+        } else { // Reuse/Overwrite the View passed
+            // We are assuming(!) that it is castable!
+            btv = (IconifiedTextView) convertView;
+        }
+        btv.setText(mItems.get(position).getText());
+        btv.setInfo(mItems.get(position).getInfo());
+        btv.setIcon(mItems.get(position).getIcon());
+        return btv;
+    }
+
+    @Override
+    public Filter getFilter() {
+        return mFilter;
+    }
 }

@@ -10,91 +10,90 @@ package com.myopicmobile.textwarrior.common;
 
 import java.util.Vector;
 
-public class AnalyzeStatisticsThread extends Thread implements ProgressSource{
-	protected Flag _abortFlag;
-	protected boolean _isDone = false;
-	protected Vector<ProgressObserver> _progressObservers;
-	private DocumentProvider _hDoc;
-	private int _start, _end;
-	protected CharEncodingUtils.Statistics _results;
-	protected CharEncodingUtils _analyzer = new CharEncodingUtils();
-	
-	public AnalyzeStatisticsThread(DocumentProvider hDoc,
-			int start, int end){
-		_hDoc = hDoc;
-		_start = start;
-		_end = end;
+public class AnalyzeStatisticsThread extends Thread implements ProgressSource {
+    protected Flag _abortFlag;
+    protected boolean _isDone = false;
+    protected Vector<ProgressObserver> _progressObservers;
+    private final DocumentProvider _hDoc;
+    private final int _start;
+    private final int _end;
+    protected CharEncodingUtils.Statistics _results;
+    protected CharEncodingUtils _analyzer = new CharEncodingUtils();
+
+    public AnalyzeStatisticsThread(DocumentProvider hDoc, int start, int end) {
+        _hDoc = hDoc;
+        _start = start;
+        _end = end;
         _abortFlag = new Flag();
-        _progressObservers = new Vector<ProgressObserver>();
-	}
-	
-	public void run(){
-		_isDone = false;
-		_abortFlag.clear();
-		_results = null;
-		
-		_results = _analyzer.analyze(_hDoc, _start, _end, _abortFlag);
+        _progressObservers = new Vector<>();
+    }
 
-		if(!_abortFlag.isSet()){
-			_isDone = true;
-			broadcastComplete(_results);
-		}
-		else{
-			broadcastCancel();
-		}
-	}
+    public void run() {
+        _isDone = false;
+        _abortFlag.clear();
+        _results = null;
 
-	@Override
-	public final void forceStop(){
-		if(!_abortFlag.isSet()){
-			_abortFlag.set();
-		}
-	}
+        _results = _analyzer.analyze(_hDoc, _start, _end, _abortFlag);
 
-	@Override
-	synchronized public final void registerObserver(ProgressObserver po){
-		_progressObservers.addElement(po);
-	}
+        if (!_abortFlag.isSet()) {
+            _isDone = true;
+            broadcastComplete(_results);
+        } else {
+            broadcastCancel();
+        }
+    }
 
-	@Override
-	synchronized public final void removeObservers(){
-		_progressObservers.clear();
-	}
+    @Override
+    public final void forceStop() {
+        if (!_abortFlag.isSet()) {
+            _abortFlag.set();
+        }
+    }
 
-	synchronized protected void broadcastComplete(
-			CharEncodingUtils.Statistics results){
-		for(ProgressObserver po : _progressObservers){
-			po.onComplete(ProgressSource.ANALYZE_TEXT, results);
-		}
-	}
-	
-	synchronized protected void broadcastCancel(){
-		for(ProgressObserver po : _progressObservers){
-			po.onCancel(ProgressSource.ANALYZE_TEXT);
-		}
-	}
+    @Override
+    synchronized public final void registerObserver(ProgressObserver po) {
+        _progressObservers.addElement(po);
+    }
 
-	@Override
-	public final int getMin(){
-		return 0;
-	}
+    @Override
+    synchronized public final void removeObservers() {
+        _progressObservers.clear();
+    }
 
-	@Override
-	public int getMax(){
-		return Math.max(1, _end - _start);
-	}
+    synchronized protected void broadcastComplete(
+            CharEncodingUtils.Statistics results) {
+        for (ProgressObserver po : _progressObservers) {
+            po.onComplete(ProgressSource.ANALYZE_TEXT, results);
+        }
+    }
 
-	@Override
-	public int getCurrent(){
-		return _analyzer.getProgress();
-	}
+    synchronized protected void broadcastCancel() {
+        for (ProgressObserver po : _progressObservers) {
+            po.onCancel(ProgressSource.ANALYZE_TEXT);
+        }
+    }
 
-	@Override
-	public final boolean isDone(){
-		return _isDone;
-	}
-	
-	public final CharEncodingUtils.Statistics getResults(){
-		return _results;
-	}
+    @Override
+    public final int getMin() {
+        return 0;
+    }
+
+    @Override
+    public int getMax() {
+        return Math.max(1, _end - _start);
+    }
+
+    @Override
+    public int getCurrent() {
+        return _analyzer.getProgress();
+    }
+
+    @Override
+    public final boolean isDone() {
+        return _isDone;
+    }
+
+    public final CharEncodingUtils.Statistics getResults() {
+        return _results;
+    }
 }
