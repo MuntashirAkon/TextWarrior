@@ -210,6 +210,7 @@ public class TextWarriorApplication extends Activity implements ProgressObserver
         _editField = findViewById(R.id.work_area);
         _editField.setRowListener(this);
         _editField.setSelModeListener(this);
+        _editField.setTextSize(32);
     }
 
     private void restorePersistentOptions() {
@@ -225,7 +226,7 @@ public class TextWarriorApplication extends Activity implements ProgressObserver
         setNavigationMethod(pref);
         setTabSpaces(pref);
         setFont(pref);
-        setZoom(pref);
+//        setZoom(pref);
         setNonPrintingCharVisibility(pref);
     }
 
@@ -1306,7 +1307,7 @@ public class TextWarriorApplication extends Activity implements ProgressObserver
                                           String key) {
 
         if (key.equals(getString(R.string.settings_key_zoom_size))) {
-            setZoom(pref);
+//            setZoom(pref);
         } else if (key.equals(getString(R.string.settings_key_word_wrap))) {
             setWordWrap(pref);
         } else if (key.equals(getString(R.string.settings_key_font))) {

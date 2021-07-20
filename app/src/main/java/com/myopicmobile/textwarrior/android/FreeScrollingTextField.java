@@ -104,8 +104,7 @@ import java.util.List;
  * this extra char. Some bounds manipulation is done so that this implementation
  * detail is hidden from client classes.
  */
-public class FreeScrollingTextField extends View
-        implements Document.TextFieldMetrics {
+public class FreeScrollingTextField extends View implements Document.TextFieldMetrics {
 
     protected boolean _isEdited = false; // whether the text field is dirtied
     protected TouchNavigationMethod _navMethod;
@@ -147,6 +146,13 @@ public class FreeScrollingTextField extends View
     protected static int DEFAULT_TAB_LENGTH_SPACES = 4;
     protected static int BASE_TEXT_SIZE_PIXELS = 16;
 
+    private int _leftOffset = 0;
+    private boolean _showLineNumbers = true;
+    private float _zoomFactor = 1;
+    private int _alphaWidth;
+    private int _spaceWidth;
+
+    private final Paint _brushLine = new Paint();
 
     public FreeScrollingTextField(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -164,12 +170,27 @@ public class FreeScrollingTextField extends View
         initView();
     }
 
+    public void setShowLineNumbers(boolean showLineNumbers) {
+        this._showLineNumbers = showLineNumbers;
+    }
+
+    public boolean showLineNumbers() {
+        return _showLineNumbers;
+    }
+
+    public int getLeftOffset() {
+        return _leftOffset;
+    }
+
     private void initView() {
         _fieldController = this.new TextFieldController();
 
         _brush = new Paint();
         _brush.setAntiAlias(true);
         _brush.setTextSize(BASE_TEXT_SIZE_PIXELS);
+
+        _brushLine.setAntiAlias(true);
+        _brushLine.setTextSize(BASE_TEXT_SIZE_PIXELS);
 
         setBackgroundColor(_colorScheme.getColor(Colorable.BACKGROUND));
         setLongClickable(false);
@@ -393,6 +414,10 @@ public class FreeScrollingTextField extends View
         if (currIndex < 0) {
             return;
         }
+        int currLineNum = _hDoc.isWordWrap() ? _hDoc.findLineNumber(currIndex) + 1 : currRowNum + 1;
+        int lastLineNum = 0;
+        if (_showLineNumbers)
+            _leftOffset = (int) _brushLine.measureText(_hDoc.getRowCount() + " ");
         int endRowNum = getEndPaintRow(canvas);
         int paintX;
         int paintY = getPaintBaseline(currRowNum);
@@ -427,17 +452,28 @@ public class FreeScrollingTextField extends View
         //----------------------------------------------
         // start painting!
         //----------------------------------------------
-
+        int rowCount = _hDoc.getRowCount();
+        doOptionHighlightRow(canvas);
+        if (_showLineNumbers) {
+            _brushLine.setColor(_colorScheme.getColor(Colorable.NON_PRINTING_GLYPH));
+            int left = _leftOffset - _spaceWidth / 2;
+            canvas.drawLine(left, getScrollY(), left, getScrollY() + getHeight(), _brushLine);
+        }
         while (currRowNum <= endRowNum) {
-
             String row = _hDoc.getRow(currRowNum);
-            if (row.length() == 0) {
+            int rowLen = _hDoc.getRowSize(currRowNum);
+            if (currRowNum > rowCount) {
                 break;
             }
 
-            paintX = 0;
+            if (_showLineNumbers && currLineNum != lastLineNum) {
+                lastLineNum = currLineNum;
+                String num = String.valueOf(currLineNum);
+                drawLineNum(canvas, num, 0, paintY);
+            }
+            paintX = _leftOffset;
 
-            for (int i = 0; i < row.length(); ++i) {
+            for (int i = 0; i < rowLen; ++i) {
                 // check if formatting changes are needed
                 if (reachedNextSpan(currIndex, nextSpan)) {
                     currSpan = nextSpan;
@@ -463,15 +499,18 @@ public class FreeScrollingTextField extends View
                 ++currIndex;
             }
 
+            if (_hDoc.charAt(currIndex - 1) == Language.NEWLINE) {
+                ++currLineNum;
+            }
+
             paintY += rowHeight();
             if (paintX > _xExtent) {
                 // record widest line seen so far
                 _xExtent = paintX;
             }
+
             ++currRowNum;
         } // end while
-
-        doOptionHighlightRow(canvas);
     }
 
     /**
@@ -485,6 +524,7 @@ public class FreeScrollingTextField extends View
 
             int lineLength = Math.max(_xExtent, getContentWidth());
             canvas.drawRect(0, y + 1, lineLength, y + 2, _brush);
+            drawTextBackground(canvas, _leftOffset - _spaceWidth / 2, y, lineLength);
             _brush.setColor(originalColor);
         }
     }
@@ -594,9 +634,17 @@ public class FreeScrollingTextField extends View
         return advance;
     }
 
+    private int drawLineNum(Canvas canvas, String s, int paintX, int paintY) {
+        int originalColor = _brush.getColor();
+        _brush.setColor(_colorScheme.getColor(Colorable.NON_PRINTING_GLYPH));
+        canvas.drawText(s, paintX, paintY, _brushLine);
+        _brush.setColor(originalColor);
+        return 0;
+    }
+
     @Override
     final public int getRowWidth() {
-        return getContentWidth();
+        return getContentWidth() - _leftOffset;
     }
 
     /**
@@ -637,7 +685,7 @@ public class FreeScrollingTextField extends View
             return (int) _brush.measureText(Language.GLYPH_SPACE,
                     0, Language.GLYPH_SPACE.length());
         } else {
-            return (int) _brush.measureText(" ", 0, 1);
+            return _spaceWidth;
         }
     }
 
@@ -655,7 +703,17 @@ public class FreeScrollingTextField extends View
             return _tabLength * (int) _brush.measureText(Language.GLYPH_SPACE,
                     0, Language.GLYPH_SPACE.length());
         } else {
-            return _tabLength * (int) _brush.measureText(" ", 0, 1);
+            return _tabLength * _spaceWidth;
+        }
+    }
+
+    protected int getTabAdvance(int x) {
+        if (_showNonPrinting) {
+            return _tabLength * (int) _brush.measureText(Language.GLYPH_SPACE,
+                    0, Language.GLYPH_SPACE.length());
+        } else {
+            int i = (x - _leftOffset) / _spaceWidth % _tabLength;
+            return (_tabLength - i) * _spaceWidth;
         }
     }
 
@@ -777,8 +835,8 @@ public class FreeScrollingTextField extends View
             scrollBy = charRight - getScrollX() - getContentWidth();
         }
 
-        if (charLeft < getScrollX()) {
-            scrollBy = charLeft - getScrollX();
+        if (charLeft < getScrollX() + _alphaWidth) {
+            scrollBy = charLeft - getScrollX() - _alphaWidth;
         }
 
         return scrollBy;
@@ -793,8 +851,8 @@ public class FreeScrollingTextField extends View
     protected Pair getCharExtent(int charOffset) {
         int row = _hDoc.findRowNumber(charOffset);
         int currOffset = _hDoc.seekChar(_hDoc.getRowOffset(row));
-        int left = 0;
-        int right = 0;
+        int left = _leftOffset;
+        int right = _leftOffset;
 
         while (currOffset <= charOffset && _hDoc.hasNext()) {
             left = right;
@@ -881,7 +939,7 @@ public class FreeScrollingTextField extends View
 
         String rowText = _hDoc.getRow(row);
 
-        int extent = 0;
+        int extent = _leftOffset;
         int i = 0;
         while (i < rowText.length()) {
             char c = rowText.charAt(i);
@@ -970,8 +1028,11 @@ public class FreeScrollingTextField extends View
      * of text in the viewport.
      */
     int getMaxScrollX() {
-        return Math.max(0,
-                _xExtent - getContentWidth() + _navMethod.getCaretBloat().right);
+        if (_hDoc.isWordWrap())
+            return _leftOffset;
+        else
+            return Math.max(0,
+                    _xExtent - getContentWidth() + _navMethod.getCaretBloat().right + _alphaWidth);
     }
 
     /**
@@ -1285,7 +1346,7 @@ public class FreeScrollingTextField extends View
     }
 
     public int getSelectionEnd() {
-        if(_selectionEdge<0) return _caretPosition;
+        if (_selectionEdge < 0) return _caretPosition;
         else return _selectionEdge;
     }
 
@@ -1313,7 +1374,7 @@ public class FreeScrollingTextField extends View
     //------------------------- Formatting methods ------------------------
 
     private boolean reachedNextSpan(int charIndex, Pair span) {
-        return (span == null) ? false : (charIndex == span.getFirst());
+        return span != null && (charIndex == span.getFirst());
     }
 
     public void respan() {
@@ -1330,6 +1391,7 @@ public class FreeScrollingTextField extends View
      */
     public void setTypeface(Typeface typeface) {
         _brush.setTypeface(typeface);
+        _brushLine.setTypeface(typeface);
         _hDoc.analyzeWordWrap();
         _fieldController.updateCaretRow();
         if (!makeCharVisible(_caretPosition)) {
@@ -1357,17 +1419,48 @@ public class FreeScrollingTextField extends View
      * to display the caret if needed, and invalidates the entire view
      */
     public void setZoom(float factor) {
-        if (factor <= 0) {
+        if (factor <= 0.5 || factor >= 5 || factor == _zoomFactor) {
             return;
         }
-
+        _zoomFactor = factor;
         int newSize = (int) (factor * BASE_TEXT_SIZE_PIXELS);
         _brush.setTextSize(newSize);
-        _hDoc.analyzeWordWrap();
-        _fieldController.updateCaretRow();
-        if (!makeCharVisible(_caretPosition)) {
-            invalidate();
+        _brushLine.setTextSize(newSize);
+        if (_hDoc.isWordWrap()) {
+            _hDoc.analyzeWordWrap();
         }
+        _fieldController.updateCaretRow();
+        _alphaWidth = (int) _brush.measureText("a");
+        //if(!makeCharVisible(_caretPosition)){
+        invalidate();
+        //}
+    }
+
+    public float getZoom() {
+        return _zoomFactor;
+    }
+
+    public void setTextSize(int pix) {
+        if (pix <= 8 || pix >= 80 || pix == _brush.getTextSize()) {
+            return;
+        }
+        double oldHeight = rowHeight();
+        double oldWidth = getAdvance('a');
+        _zoomFactor = pix * 1f / BASE_TEXT_SIZE_PIXELS;
+        _brush.setTextSize(pix);
+        _brushLine.setTextSize(pix);
+        if (_hDoc.isWordWrap())
+            _hDoc.analyzeWordWrap();
+        _fieldController.updateCaretRow();
+        double x = getScrollX() * ((double) getAdvance('a') / oldWidth);
+        double y = getScrollY() * ((double) rowHeight() / oldHeight);
+        scrollTo((int) x, (int) y);
+        _alphaWidth = (int) _brush.measureText("a");
+        _spaceWidth = (int) _brush.measureText(" ");
+        //int idx=coordToCharIndex(getScrollX(), getScrollY());
+        //if (!makeCharVisible(idx)) {
+            invalidate();
+        // }
     }
 
     /**
@@ -1993,7 +2086,7 @@ public class FreeScrollingTextField extends View
          * @param mode If true, enter select mode; else exit select mode
          */
         public void setSelectText(boolean mode) {
-            if (!(mode ^ _isInSelectionMode)) {
+            if (mode == _isInSelectionMode) {
                 return;
             }
 
