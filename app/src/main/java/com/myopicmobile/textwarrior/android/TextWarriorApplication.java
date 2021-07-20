@@ -80,7 +80,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
-public class TextWarriorApplication extends Activity implements ProgressObserver, RowListener, SelectionModeListener,
+public class TextWarriorApplication extends Activity implements ProgressObserver, RowListener, SelectionChangedListener,
         SharedPreferences.OnSharedPreferenceChangeListener {
 
     protected FreeScrollingTextField _editField;
@@ -1227,7 +1227,7 @@ public class TextWarriorApplication extends Activity implements ProgressObserver
     }
 
     @Override
-    public void onSelectionModeChanged(boolean active) {
+    public void onSelectionChanged(boolean active, int selStart, int selEnd) {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
         if (active && _editField.isFocused() && !_clipboardPanel.isOpen()) {
             boolean autoOpen = pref.getBoolean(

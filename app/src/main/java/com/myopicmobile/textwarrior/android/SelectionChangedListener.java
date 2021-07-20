@@ -8,6 +8,6 @@
  */
 package com.myopicmobile.textwarrior.android;
 
-public interface SelectionModeListener {
-    void onSelectionModeChanged(boolean active);
+public interface SelectionChangedListener {
+    void onSelectionChanged(boolean active, int selStart, int selEnd);
 }

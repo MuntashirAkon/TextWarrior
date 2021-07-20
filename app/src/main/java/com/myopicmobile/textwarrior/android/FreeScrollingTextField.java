@@ -1,11 +1,4 @@
-/*
- * Copyright (c) 2013 Tah Wei Hoon.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Apache License Version 2.0,
- * with full text available at http://www.apache.org/licenses/LICENSE-2.0.html
- *
- * This software is provided "as is". Use at your own risk.
- */
+// SPDX-License-Identifier: Apache-2.0 AND GPL-3.0-or-later
 
 /*
  *****************************************************************************
@@ -121,7 +114,7 @@ public class FreeScrollingTextField extends View
     private TextFieldInputConnection _inputConnection;
     private final Scroller _scroller;
     private RowListener _rowLis;
-    private SelectionModeListener _selModeLis;
+    private SelectionChangedListener _selModeLis;
 
     protected int _caretPosition = 0;
     private int _caretRow = 0; // can be calculated, but stored for efficiency purposes
@@ -187,7 +180,7 @@ public class FreeScrollingTextField extends View
             // Do nothing
         };
 
-        _selModeLis = active -> {
+        _selModeLis = (active, selStart, selEnd) -> {
             // Do nothing
         };
         resetView();
@@ -234,7 +227,7 @@ public class FreeScrollingTextField extends View
         _rowLis = rLis;
     }
 
-    public void setSelModeListener(SelectionModeListener sLis) {
+    public void setSelModeListener(SelectionChangedListener sLis) {
         _selModeLis = sLis;
     }
 
@@ -1287,11 +1280,13 @@ public class FreeScrollingTextField extends View
     }
 
     public int getSelectionStart() {
-        return _selectionAnchor;
+        if (_selectionAnchor < 0) return _caretPosition;
+        else return _selectionAnchor;
     }
 
     public int getSelectionEnd() {
-        return _selectionEdge;
+        if(_selectionEdge<0) return _caretPosition;
+        else return _selectionEdge;
     }
 
     public void focusSelectionStart() {
@@ -2010,7 +2005,7 @@ public class FreeScrollingTextField extends View
                 _selectionEdge = -1;
             }
             _isInSelectionMode = mode;
-            _selModeLis.onSelectionModeChanged(mode);
+            _selModeLis.onSelectionChanged(mode, getSelectionStart(), getSelectionEnd());
         }
 
         public boolean inSelectionRange(int charOffset) {
