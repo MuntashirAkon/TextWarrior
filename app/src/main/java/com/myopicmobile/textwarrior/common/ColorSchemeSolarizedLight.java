@@ -1,11 +1,4 @@
-/*
- * Copyright (c) 2013 Tah Wei Hoon.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Apache License Version 2.0,
- * with full text available at http://www.apache.org/licenses/LICENSE-2.0.html
- *
- * This software is provided "as is". Use at your own risk.
- */
+// SPDX-License-Identifier: Apache-2.0 AND GPL-3.0-or-later
 
 package com.myopicmobile.textwarrior.common;
 
@@ -20,16 +13,19 @@ public class ColorSchemeSolarizedLight extends ColorScheme {
         setColor(Colorable.FOREGROUND, BASE00);
         setColor(Colorable.BACKGROUND, BASE3);
         setColor(Colorable.SELECTION_FOREGROUND, BASE3);
-        setColor(Colorable.SELECTION_BACKGROUND, RED);
+        setColor(Colorable.SELECTION_BACKGROUND, BASE00);
         setColor(Colorable.CARET_FOREGROUND, BASE3);
-        setColor(Colorable.CARET_BACKGROUND, BLUE);
+        setColor(Colorable.CARET_BACKGROUND, RED);
         setColor(Colorable.CARET_DISABLED, BASE1);
-        setColor(Colorable.LINE_HIGHLIGHT, MAGENTA);
+        setColor(Colorable.LINE_NUMBER, BASE1);
+        setColor(Colorable.LINE_DIVIDER, BASE1);
+        setColor(Colorable.LINE_HIGHLIGHT_0, BASE2);
+        setColor(Colorable.LINE_HIGHLIGHT, BASE2);
         setColor(Colorable.NON_PRINTING_GLYPH, BASE1);
         setColor(Colorable.COMMENT, BASE1);
-        setColor(Colorable.KEYWORD, CYAN);
-        setColor(Colorable.LITERAL, VIOLET);
-        setColor(Colorable.SECONDARY, ORANGE);
+        setColor(Colorable.KEYWORD, BLUE);
+        setColor(Colorable.LITERAL, CYAN);
+        setColor(Colorable.SECONDARY, BASE1);
     }
 
     protected static final int BASE00 = 0xFF657B83; // bryellow

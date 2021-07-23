@@ -1,22 +1,17 @@
-/*
- * Copyright (c) 2013 Tah Wei Hoon.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Apache License Version 2.0,
- * with full text available at http://www.apache.org/licenses/LICENSE-2.0.html
- *
- * This software is provided "as is". Use at your own risk.
- */
+// SPDX-License-Identifier: Apache-2.0 AND GPL-3.0-or-later
 
 package com.myopicmobile.textwarrior.common;
+
+import androidx.annotation.NonNull;
 
 import java.util.HashMap;
 
 public abstract class ColorScheme {
     public enum Colorable {
         FOREGROUND, BACKGROUND, SELECTION_FOREGROUND, SELECTION_BACKGROUND,
-        CARET_FOREGROUND, CARET_BACKGROUND, CARET_DISABLED, LINE_HIGHLIGHT,
-        NON_PRINTING_GLYPH, COMMENT, KEYWORD, LITERAL,
-        SECONDARY
+        CARET_FOREGROUND, CARET_BACKGROUND, CARET_DISABLED,
+        LINE_NUMBER, LINE_DIVIDER, LINE_HIGHLIGHT_0, LINE_HIGHLIGHT,
+        NON_PRINTING_GLYPH, COMMENT, KEYWORD, LITERAL, SECONDARY
     }
 
     protected HashMap<Colorable, Integer> _colors = generateDefaultColors();
@@ -70,6 +65,7 @@ public abstract class ColorScheme {
      */
     public abstract boolean isDark();
 
+    @NonNull
     private HashMap<Colorable, Integer> generateDefaultColors() {
         // High-contrast, black-on-white color scheme
         return new HashMap<Colorable, Integer>(Colorable.values().length) {{
@@ -80,7 +76,10 @@ public abstract class ColorScheme {
             put(Colorable.CARET_FOREGROUND, WHITE);
             put(Colorable.CARET_BACKGROUND, BLUE);
             put(Colorable.CARET_DISABLED, GREY);
-            put(Colorable.LINE_HIGHLIGHT, LIGHT_GREY);
+            put(Colorable.LINE_NUMBER, OLIVE_GREEN);
+            put(Colorable.LINE_DIVIDER, OLIVE_GREEN);
+            put(Colorable.LINE_HIGHLIGHT_0, WHITE_HIGHLIGHT);
+            put(Colorable.LINE_HIGHLIGHT, WHITE_HIGHLIGHT);
             put(Colorable.NON_PRINTING_GLYPH, LIGHT_GREY);
             put(Colorable.COMMENT, OLIVE_GREEN); //  Eclipse default color
             put(Colorable.KEYWORD, PURPLE); // Eclipse default color
@@ -90,6 +89,7 @@ public abstract class ColorScheme {
     }
 
     // In ARGB format: 0xAARRGGBB
+    public static final int BLACK_HIGHLIGHT = 0x10FFFFFF;
     private static final int BLACK = 0xFF000000;
     private static final int BLUE = 0xFF0000FF;
     private static final int DARK_RED = 0xFF8B0000;
@@ -99,6 +99,6 @@ public abstract class ColorScheme {
     private static final int INDIGO = 0xFF2A00FF;
     private static final int OLIVE_GREEN = 0xFF3F7F5F;
     private static final int PURPLE = 0xFF7F0055;
-    private static final int RED = 0xFFFF0000;
     private static final int WHITE = 0xFFFFFFFF;
+    private static final int WHITE_HIGHLIGHT = 0x10000000;
 }

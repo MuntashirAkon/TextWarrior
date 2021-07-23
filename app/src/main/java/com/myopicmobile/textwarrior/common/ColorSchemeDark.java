@@ -1,14 +1,6 @@
-/*
- * Copyright (c) 2013 Tah Wei Hoon.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Apache License Version 2.0,
- * with full text available at http://www.apache.org/licenses/LICENSE-2.0.html
- *
- * This software is provided "as is". Use at your own risk.
- */
+// SPDX-License-Identifier: Apache-2.0 AND GPL-3.0-or-later
 
 package com.myopicmobile.textwarrior.common;
-
 
 public class ColorSchemeDark extends ColorScheme {
 
@@ -20,7 +12,8 @@ public class ColorSchemeDark extends ColorScheme {
         setColor(Colorable.CARET_FOREGROUND, OFF_BLACK);
         setColor(Colorable.CARET_BACKGROUND, FLUORESCENT_YELLOW);
         setColor(Colorable.CARET_DISABLED, LIGHT_GREY);
-        setColor(Colorable.LINE_HIGHLIGHT, FLUORESCENT_YELLOW);
+        setColor(Colorable.LINE_HIGHLIGHT_0, BLACK_HIGHLIGHT);
+        setColor(Colorable.LINE_HIGHLIGHT, BLACK_HIGHLIGHT);
         setColor(Colorable.NON_PRINTING_GLYPH, DARK_GREY);
         setColor(Colorable.COMMENT, JUNGLE_GREEN);
         setColor(Colorable.KEYWORD, MARINE);

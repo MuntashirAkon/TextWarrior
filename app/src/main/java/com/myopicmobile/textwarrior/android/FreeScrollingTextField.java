@@ -464,8 +464,8 @@ public class FreeScrollingTextField extends View implements Document.TextFieldMe
         int rowCount = _hDoc.getRowCount();
         doOptionHighlightRow(canvas);
         if (_showLineNumbers) {
-            _brushLine.setColor(_colorScheme.getColor(Colorable.NON_PRINTING_GLYPH));
             int left = _leftOffset - _spaceWidth / 2;
+            _brushLine.setColor(_colorScheme.getColor(Colorable.LINE_DIVIDER));
             // Show divider
             canvas.drawLine(left, getScrollY(), left, getScrollY() + getHeight(), _brushLine);
         }
@@ -533,8 +533,10 @@ public class FreeScrollingTextField extends View implements Document.TextFieldMe
             int y = getPaintBaseline(_caretRow);
             int originalColor = _brush.getColor();
             int lineLength = Math.max(_xExtent, getContentWidth());
-            _brush.setColor(_colorScheme.getColor(Colorable.CARET_DISABLED));
+            // Highlight line number
+            _brush.setColor(_colorScheme.getColor(Colorable.LINE_HIGHLIGHT_0));
             drawTextBackground(canvas, 0, y, lineLength);
+            // Highlight text
             _brush.setColor(_colorScheme.getColor(Colorable.LINE_HIGHLIGHT));
             drawTextBackground(canvas, _leftOffset - _spaceWidth / 2, y, lineLength);
             _brush.setColor(originalColor);
@@ -606,7 +608,6 @@ public class FreeScrollingTextField extends View implements Document.TextFieldMe
         return advance;
     }
 
-
     private int drawCaret(Canvas canvas, char c, int paintX, int paintY) {
         int originalColor = _brush.getColor();
         int textColor = originalColor;
@@ -648,7 +649,7 @@ public class FreeScrollingTextField extends View implements Document.TextFieldMe
 
     private int drawLineNum(Canvas canvas, String s, int paintX, int paintY) {
         int originalColor = _brush.getColor();
-        _brush.setColor(_colorScheme.getColor(Colorable.NON_PRINTING_GLYPH));
+        _brush.setColor(_colorScheme.getColor(Colorable.LINE_NUMBER));
         canvas.drawText(s, paintX, paintY, _brushLine);
         _brush.setColor(originalColor);
         return 0;
