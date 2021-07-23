@@ -12,6 +12,7 @@ package com.myopicmobile.textwarrior.android;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
@@ -24,7 +25,6 @@ import android.os.Handler;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
-import android.text.ClipboardManager;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -32,7 +32,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.LinearInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -142,10 +141,8 @@ public class TextWarriorApplication extends Activity implements ProgressObserver
             // Workaround to dismiss system-managed dialogs that were at the
             // foreground when the process was force-killed
             Handler h = new Handler();
-            h.post(() -> {
-                dismissAllDialogs();
-                //TODO if worker threads were interrupted, display info box
-            });
+            //TODO if worker threads were interrupted, display info box
+            h.post(this::dismissAllDialogs);
 
             if (isRecovered) {
                 restoreUiState(savedInstanceState);
@@ -158,7 +155,6 @@ public class TextWarriorApplication extends Activity implements ProgressObserver
         }
 
         updateTitle();
-        updateClipboardButtons();
     }
 
 
@@ -179,26 +175,8 @@ public class TextWarriorApplication extends Activity implements ProgressObserver
 
 
     private void createClipboardPanel() {
-        _clipboardPanel = findViewById(R.id.clipboard_drawer);
-        _clipboardPanel.setInterpolator(new LinearInterpolator());
-
-        _clipboardPanel.setCutListener(v -> cut());
-
-        _clipboardPanel.setCopyListener(v -> copy());
-
-        _clipboardPanel.setPasteListener(v -> paste());
+        _clipboardPanel = new ClipboardPanel(_editField);
     }
-
-    /**
-     * Enable/disable cut/copy/paste buttons based on text selection state
-     */
-    private void updateClipboardButtons() {
-        boolean isSelecting = _editField.isSelectText();
-        ClipboardManager cb = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-        _clipboardPanel.setClipboardButtonState(
-                isSelecting, isSelecting, cb.hasText());
-    }
-
 
     private void createFindPanel() {
         _findPanel = findViewById(R.id.find_panel);
@@ -361,8 +339,7 @@ public class TextWarriorApplication extends Activity implements ProgressObserver
         } else if (itemId == R.id.statistics) {
             analyzeTextProperties();
         } else if (itemId == R.id.change_input_method) {
-            InputMethodManager im =
-                    (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            InputMethodManager im = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             im.showInputMethodPicker();
         } else if (itemId == R.id.settings) {
             Intent i = new Intent(this, TextWarriorSettings.class);
@@ -438,12 +415,10 @@ public class TextWarriorApplication extends Activity implements ProgressObserver
 
     public void cut() {
         _editField.cut((ClipboardManager) getSystemService(CLIPBOARD_SERVICE));
-        updateClipboardButtons();
     }
 
     public void copy() {
         _editField.copy((ClipboardManager) getSystemService(CLIPBOARD_SERVICE));
-        updateClipboardButtons();
     }
 
     public void paste() {
@@ -678,8 +653,7 @@ public class TextWarriorApplication extends Activity implements ProgressObserver
         builder.setNegativeButton(android.R.string.cancel, (dialog, id) -> dialog.cancel());
         final Dialog dialog = builder.create();
 
-        ListView fileListView =
-                (ListView) _recentFilesLayout.findViewById(R.id.recent_files_list);
+        ListView fileListView = _recentFilesLayout.findViewById(R.id.recent_files_list);
         IconifiedTextListAdapter itla = new IconifiedTextListAdapter(this);
         fileListView.setAdapter(itla);
         populateRecentFilesDialog(dialog);
@@ -1229,23 +1203,9 @@ public class TextWarriorApplication extends Activity implements ProgressObserver
 
     @Override
     public void onSelectionChanged(boolean active, int selStart, int selEnd) {
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
-        if (active && _editField.isFocused() && !_clipboardPanel.isOpen()) {
-            boolean autoOpen = pref.getBoolean(
-                    getString(R.string.settings_key_auto_open_clipboard),
-                    getResources().getBoolean(R.bool.settings_auto_open_clipboard_default));
-            if (autoOpen) {
-                _clipboardPanel.setOpen(true, true);
-            }
-        } else if (!active && _editField.isFocused() && _clipboardPanel.isOpen()) {
-            boolean autoClose = pref.getBoolean(
-                    getString(R.string.settings_key_auto_close_clipboard),
-                    getResources().getBoolean(R.bool.settings_auto_close_clipboard_default));
-            if (autoClose) {
-                _clipboardPanel.setOpen(false, true);
-            }
-        }
-        updateClipboardButtons();
+        if (active) {
+            _clipboardPanel.show();
+        } else _clipboardPanel.hide();
     }
 
     @Override
@@ -1362,7 +1322,6 @@ public class TextWarriorApplication extends Activity implements ProgressObserver
         }
 
         _editField.setColorScheme(colorScheme);
-        _clipboardPanel.setColorScheme(colorScheme);
     }
 
     private void setSyntaxColor(SharedPreferences pref) {
@@ -1406,22 +1365,23 @@ public class TextWarriorApplication extends Activity implements ProgressObserver
     }
 
     private void setNavigationMethod(SharedPreferences pref) {
-        String navKey = getString(R.string.settings_key_navigation_method);
-        String nav = pref.getString(navKey, getString(R.string.settings_navigation_method_default));
-
-        if (nav.equals(getString(R.string.settings_navigation_method_basic))) {
-            _editField.setNavigationMethod(new TouchNavigationMethod(_editField));
-        } else if (nav.equals(getString(R.string.settings_navigation_method_trackpad))) {
-            _editField.setNavigationMethod(new TrackpadNavigationMethod(_editField));
-        } else if (nav.equals(getString(R.string.settings_navigation_method_vol_keys))) {
-            _editField.setNavigationMethod(new VolumeKeysNavigationMethod(_editField));
-        } else if (nav.equals(getString(R.string.settings_navigation_method_yoyo))) {
-            _editField.setNavigationMethod(new YoyoNavigationMethod(_editField));
-        } else if (nav.equals(getString(R.string.settings_navigation_method_liquid))) {
-            _editField.setNavigationMethod(new LiquidNavigationMethod(_editField));
-        } else {
-            TextWarriorException.fail("Unsupported navigation method");
-        }
+        _editField.setNavigationMethod(new YoyoNavigationMethod(_editField));
+//        String navKey = getString(R.string.settings_key_navigation_method);
+//        String nav = pref.getString(navKey, getString(R.string.settings_navigation_method_default));
+//
+//        if (nav.equals(getString(R.string.settings_navigation_method_basic))) {
+//            _editField.setNavigationMethod(new TouchNavigationMethod(_editField));
+//        } else if (nav.equals(getString(R.string.settings_navigation_method_trackpad))) {
+//            _editField.setNavigationMethod(new TrackpadNavigationMethod(_editField));
+//        } else if (nav.equals(getString(R.string.settings_navigation_method_vol_keys))) {
+//            _editField.setNavigationMethod(new VolumeKeysNavigationMethod(_editField));
+//        } else if (nav.equals(getString(R.string.settings_navigation_method_yoyo))) {
+//            _editField.setNavigationMethod(new YoyoNavigationMethod(_editField));
+//        } else if (nav.equals(getString(R.string.settings_navigation_method_liquid))) {
+//            _editField.setNavigationMethod(new LiquidNavigationMethod(_editField));
+//        } else {
+//            TextWarriorException.fail("Unsupported navigation method");
+//        }
     }
 
     private void setChirality(SharedPreferences pref) {
@@ -1691,9 +1651,6 @@ public class TextWarriorApplication extends Activity implements ProgressObserver
         _editField.restoreUiState(uiState.getParcelable(STATE_TEXT_UI));
 
         AppUiState appUiState = uiState.getParcelable(STATE_APP_UI);
-        if (appUiState.clipboardOpen) {
-            _clipboardPanel.setOpen(true, false); //closed by default
-        }
         _findPanel.setVisibility(appUiState.findPanelVisibility);
     }
 
@@ -1759,7 +1716,6 @@ public class TextWarriorApplication extends Activity implements ProgressObserver
 
     private static class AppUiState implements Parcelable {
         final int findPanelVisibility;
-        final boolean clipboardOpen;
 
         @Override
         public int describeContents() {
@@ -1768,19 +1724,15 @@ public class TextWarriorApplication extends Activity implements ProgressObserver
 
         public AppUiState(TextWarriorApplication app) {
             findPanelVisibility = app._findPanel.getVisibility();
-            clipboardOpen = app._clipboardPanel.isOpen();
-
         }
 
         private AppUiState(Parcel in) {
             findPanelVisibility = in.readInt();
-            clipboardOpen = in.readInt() != 0;
         }
 
         @Override
         public void writeToParcel(Parcel out, int flags) {
             out.writeInt(findPanelVisibility);
-            out.writeInt(clipboardOpen ? 1 : 0);
         }
 
         public static final Parcelable.Creator<AppUiState> CREATOR

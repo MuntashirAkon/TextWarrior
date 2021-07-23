@@ -33,6 +33,8 @@
  */
 package com.myopicmobile.textwarrior.android;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -40,7 +42,6 @@ import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.text.ClipboardManager;
 import android.text.InputType;
 import android.text.Selection;
 import android.text.SpannableStringBuilder;
@@ -52,6 +53,7 @@ import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.AnimationUtils;
 import android.view.inputmethod.BaseInputConnection;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
@@ -104,6 +106,7 @@ import java.util.List;
  * this extra char. Some bounds manipulation is done so that this implementation
  * detail is hidden from client classes.
  */
+@SuppressWarnings({"unused", "BooleanMethodIsAlwaysInverted"})
 public class FreeScrollingTextField extends View implements Document.TextFieldMetrics {
 
     protected boolean _isEdited = false; // whether the text field is dirtied
@@ -180,6 +183,10 @@ public class FreeScrollingTextField extends View implements Document.TextFieldMe
 
     public int getLeftOffset() {
         return _leftOffset;
+    }
+
+    public float getTextSize() {
+        return _brush.getTextSize();
     }
 
     private void initView() {
@@ -416,8 +423,10 @@ public class FreeScrollingTextField extends View implements Document.TextFieldMe
         }
         int currLineNum = _hDoc.isWordWrap() ? _hDoc.findLineNumber(currIndex) + 1 : currRowNum + 1;
         int lastLineNum = 0;
-        if (_showLineNumbers)
-            _leftOffset = (int) _brushLine.measureText(_hDoc.getRowCount() + " ");
+        if (_showLineNumbers) {
+            // Offset starts at 5 ends before space width = 5 + Line number + space width
+            _leftOffset = (int) _brushLine.measureText(String.valueOf(_hDoc.getRowCount())) + 5 + _spaceWidth;
+        }
         int endRowNum = getEndPaintRow(canvas);
         int paintX;
         int paintY = getPaintBaseline(currRowNum);
@@ -457,6 +466,7 @@ public class FreeScrollingTextField extends View implements Document.TextFieldMe
         if (_showLineNumbers) {
             _brushLine.setColor(_colorScheme.getColor(Colorable.NON_PRINTING_GLYPH));
             int left = _leftOffset - _spaceWidth / 2;
+            // Show divider
             canvas.drawLine(left, getScrollY(), left, getScrollY() + getHeight(), _brushLine);
         }
         while (currRowNum <= endRowNum) {
@@ -469,7 +479,9 @@ public class FreeScrollingTextField extends View implements Document.TextFieldMe
             if (_showLineNumbers && currLineNum != lastLineNum) {
                 lastLineNum = currLineNum;
                 String num = String.valueOf(currLineNum);
-                drawLineNum(canvas, num, 0, paintY);
+                // 5 + line no + space width
+                int startOffset = _leftOffset - (int) _brushLine.measureText(num) - _spaceWidth;
+                drawLineNum(canvas, num, startOffset, paintY);
             }
             paintX = _leftOffset;
 
@@ -520,10 +532,10 @@ public class FreeScrollingTextField extends View implements Document.TextFieldMe
         if (_isHighlightRow) {
             int y = getPaintBaseline(_caretRow);
             int originalColor = _brush.getColor();
-            _brush.setColor(_colorScheme.getColor(Colorable.LINE_HIGHLIGHT));
-
             int lineLength = Math.max(_xExtent, getContentWidth());
-            canvas.drawRect(0, y + 1, lineLength, y + 2, _brush);
+            _brush.setColor(_colorScheme.getColor(Colorable.CARET_DISABLED));
+            drawTextBackground(canvas, 0, y, lineLength);
+            _brush.setColor(_colorScheme.getColor(Colorable.LINE_HIGHLIGHT));
             drawTextBackground(canvas, _leftOffset - _spaceWidth / 2, y, lineLength);
             _brush.setColor(originalColor);
         }
@@ -721,44 +733,18 @@ public class FreeScrollingTextField extends View implements Document.TextFieldMe
      * Invalidate rows from startRow (inclusive) to endRow (exclusive)
      */
     private void invalidateRows(int startRow, int endRow) {
-        TextWarriorException.assertVerbose(startRow <= endRow && startRow >= 0,
+        TextWarriorException.assertVerbose(
+                startRow <= endRow && startRow >= 0,
                 "Invalid startRow and/or endRow");
-
-        Rect caretSpill = _navMethod.getCaretBloat();
-        //TODO The ascent of (startRow+1) may jut inside startRow, so part of
-        // that rows have to be invalidated as well.
-        // This is a problem for Thai, Vietnamese and Indic scripts
-        Paint.FontMetricsInt metrics = _brush.getFontMetricsInt();
-        int top = startRow * rowHeight() + getPaddingTop();
-        top -= Math.max(caretSpill.top, metrics.descent);
-        top = Math.max(0, top);
-
-        super.invalidate(0,
-                top,
-                getScrollX() + getWidth(),
-                endRow * rowHeight() + getPaddingTop() + caretSpill.bottom);
+        super.invalidate();
     }
 
     /**
      * Invalidate rows from startRow (inclusive) to the end of the field
      */
     private void invalidateFromRow(int startRow) {
-        TextWarriorException.assertVerbose(startRow >= 0,
-                "Invalid startRow");
-
-        Rect caretSpill = _navMethod.getCaretBloat();
-        //TODO The ascent of (startRow+1) may jut inside startRow, so part of
-        // that rows have to be invalidated as well.
-        // This is a problem for Thai, Vietnamese and Indic scripts
-        Paint.FontMetricsInt metrics = _brush.getFontMetricsInt();
-        int top = startRow * rowHeight() + getPaddingTop();
-        top -= Math.max(caretSpill.top, metrics.descent);
-        top = Math.max(0, top);
-
-        super.invalidate(0,
-                top,
-                getScrollX() + getWidth(),
-                getScrollY() + getHeight());
+        TextWarriorException.assertVerbose(startRow >= 0, "Invalid startRow");
+        super.invalidate();
     }
 
     private void invalidateCaretRow() {
@@ -1060,6 +1046,48 @@ public class FreeScrollingTextField extends View implements Document.TextFieldMe
         if (_scroller.computeScrollOffset()) {
             scrollTo(_scroller.getCurrX(), _scroller.getCurrY());
         }
+    }
+
+    private long mLastScroll;
+
+    /**
+     * Like {@link View#scrollBy}, but scroll smoothly instead of immediately.
+     *
+     * @param dx the number of pixels to scroll by on the X axis
+     * @param dy the number of pixels to scroll by on the Y axis
+     */
+    public final void smoothScrollBy(int dx, int dy) {
+        if (getHeight() == 0) {
+            // Nothing to do.
+            return;
+        }
+        long duration = AnimationUtils.currentAnimationTimeMillis() - mLastScroll;
+        if (duration > 250) {
+            //final int maxY = getMaxScrollX();
+            final int scrollY = getScrollY();
+            final int scrollX = getScrollX();
+
+            //dy = Math.max(0, Math.min(scrollY + dy, maxY)) - scrollY;
+
+            _scroller.startScroll(scrollX, scrollY, dx, dy);
+            postInvalidate();
+        } else {
+            if (!_scroller.isFinished()) {
+                _scroller.abortAnimation();
+            }
+            scrollBy(dx, dy);
+        }
+        mLastScroll = AnimationUtils.currentAnimationTimeMillis();
+    }
+
+    /**
+     * Like {@link #scrollTo}, but scroll smoothly instead of immediately.
+     *
+     * @param x the position where to scroll on the X axis
+     * @param y the position where to scroll on the Y axis
+     */
+    public final void smoothScrollTo(int x, int y) {
+        smoothScrollBy(x - getScrollX(), y - getScrollY());
     }
 
     /**
@@ -1370,6 +1398,10 @@ public class FreeScrollingTextField extends View implements Document.TextFieldMe
         _fieldController.paste(text);
     }
 
+    public void delete() {
+        _fieldController.selectionDelete();
+    }
+
     //---------------------------------------------------------------------
     //------------------------- Formatting methods ------------------------
 
@@ -1459,7 +1491,7 @@ public class FreeScrollingTextField extends View implements Document.TextFieldMe
         _spaceWidth = (int) _brush.measureText(" ");
         //int idx=coordToCharIndex(getScrollX(), getScrollY());
         //if (!makeCharVisible(idx)) {
-            invalidate();
+        invalidate();
         // }
     }
 
@@ -2220,11 +2252,9 @@ public class FreeScrollingTextField extends View implements Document.TextFieldMe
          */
         public void copy(ClipboardManager cb) {
             //TODO catch OutOfMemoryError
-            if (_isInSelectionMode &&
-                    _selectionAnchor < _selectionEdge) {
-                char[] contents = _hDoc.subSequence(_selectionAnchor,
-                        _selectionEdge - _selectionAnchor);
-                cb.setText(new String(contents));
+            if (_isInSelectionMode && _selectionAnchor < _selectionEdge) {
+                char[] contents = _hDoc.subSequence(_selectionAnchor, _selectionEdge - _selectionAnchor);
+                cb.setPrimaryClip(ClipData.newPlainText("Text", new String(contents)));
             }
         }
 

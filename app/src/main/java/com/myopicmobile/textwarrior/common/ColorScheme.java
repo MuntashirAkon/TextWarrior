@@ -80,7 +80,7 @@ public abstract class ColorScheme {
             put(Colorable.CARET_FOREGROUND, WHITE);
             put(Colorable.CARET_BACKGROUND, BLUE);
             put(Colorable.CARET_DISABLED, GREY);
-            put(Colorable.LINE_HIGHLIGHT, RED);
+            put(Colorable.LINE_HIGHLIGHT, LIGHT_GREY);
             put(Colorable.NON_PRINTING_GLYPH, LIGHT_GREY);
             put(Colorable.COMMENT, OLIVE_GREEN); //  Eclipse default color
             put(Colorable.KEYWORD, PURPLE); // Eclipse default color

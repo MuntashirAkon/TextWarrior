@@ -1,122 +1,215 @@
-/*
- * Copyright (c) 2013 Tah Wei Hoon.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Apache License Version 2.0,
- * with full text available at http://www.apache.org/licenses/LICENSE-2.0.html
- *
- * This software is provided "as is". Use at your own risk.
- */
+// SPDX-License-Identifier: Apache-2.0 AND GPL-3.0-or-later
+
 package com.myopicmobile.textwarrior.android;
 
-import org.miscwidgets.widget.Panel;
-
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.util.AttributeSet;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
+import android.graphics.Rect;
+import android.os.Build;
+import android.view.ActionMode;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageButton;
 
-import com.myopicmobile.textwarrior.common.ColorScheme;
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 
-public class ClipboardPanel extends Panel {
-    protected ImageButton _cut;
-    protected ImageButton _copy;
-    protected ImageButton _paste;
+public class ClipboardPanel {
+    @NonNull
+    protected final FreeScrollingTextField _textField;
+    @NonNull
+    private final Context _context;
+    private final ClipboardManager _cb;
 
-    private final float MIN_FLICK_VELOCITY = 150;
-    private final boolean mFlushedHandle; //whether the handle should be wrapped to the contents
-    GestureDetector _gestureDetector;
+    private ActionMode _clipboardActionMode;
+    private ActionMode.Callback2 _clipboardActionModeCallback2;
+    private Rect caret;
 
-    public ClipboardPanel(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.ClipboardPanel);
-        mFlushedHandle = a.getBoolean(R.styleable.ClipboardPanel_flushedHandle, false);
-        a.recycle();
-
-        _gestureDetector = new GestureDetector(context, _contentGestureListener);
-        _gestureDetector.setIsLongpressEnabled(false);
+    public ClipboardPanel(@NonNull FreeScrollingTextField textField) {
+        _textField = textField;
+        _context = textField.getContext();
+        _cb = (ClipboardManager) _context.getSystemService(Context.CLIPBOARD_SERVICE);
     }
 
-    @Override
-    protected void onFinishInflate() {
-        super.onFinishInflate();
-
-        _cut = findViewById(R.id.cut);
-        _copy = findViewById(R.id.copy);
-        _paste = findViewById(R.id.paste);
+    @NonNull
+    public Context getContext() {
+        return _context;
     }
 
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        if (mFlushedHandle) {
-            // Calculate the dimensions of the wrapped panel contents.
-            // If this is a vertical panel, restrict the handle width to the content width;
-            // If this is a horizontal panel, restrict the handle height to the content height;
-            View content = getContent();
-            content.measure(widthMeasureSpec, heightMeasureSpec);
-            if (getPosition() == Panel.TOP || getPosition() == Panel.BOTTOM) {
-                widthMeasureSpec = MeasureSpec.makeMeasureSpec(
-                        content.getMeasuredWidth(), MeasureSpec.EXACTLY);
-            } else {
-                heightMeasureSpec = MeasureSpec.makeMeasureSpec(
-                        content.getMeasuredHeight(), MeasureSpec.EXACTLY);
-            }
-        }
-
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-    }
-
-    @Override
-    public boolean dispatchTouchEvent(MotionEvent event) {
-        _gestureDetector.onTouchEvent(event);
-        return super.dispatchTouchEvent(event);
-    }
-
-    private final GestureDetector.SimpleOnGestureListener _contentGestureListener
-            = new GestureDetector.SimpleOnGestureListener() {
-        @Override
-        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-            int orientation = getPosition();
-            if (isOpen() && ((orientation == Panel.TOP && velocityY < -MIN_FLICK_VELOCITY) ||
-                    (orientation == Panel.BOTTOM && velocityY > MIN_FLICK_VELOCITY) ||
-                    (orientation == Panel.LEFT && velocityX < -MIN_FLICK_VELOCITY) ||
-                    (orientation == Panel.RIGHT && velocityX > MIN_FLICK_VELOCITY))) {
-                setOpen(false, true);
-            }
-            return true;
-        }
-    };
-
-    /**
-     * Enables/disables the individual clipboard buttons
-     */
-    public void setClipboardButtonState(boolean cut, boolean copy, boolean paste) {
-        _cut.setEnabled(cut);
-        _copy.setEnabled(copy);
-        _paste.setEnabled(paste);
-    }
-
-    public void setCutListener(OnClickListener listener) {
-        _cut.setOnClickListener(listener);
-    }
-
-    public void setCopyListener(OnClickListener listener) {
-        _copy.setOnClickListener(listener);
-    }
-
-    public void setPasteListener(OnClickListener listener) {
-        _paste.setOnClickListener(listener);
-    }
-
-    public void setColorScheme(ColorScheme colorScheme) {
-        if (colorScheme.isDark()) {
-            // if the color scheme uses a dark background, the clipboard needs
-            // a light background for contrast
-            getContent().setBackgroundResource(R.drawable.clipboard_drawer_background_light);
+    public void show() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            initData();
+            startClipboardActionNew();
         } else {
-            getContent().setBackgroundResource(R.drawable.clipboard_drawer_background_dark);
+            startClipboardAction();
+        }
+
+    }
+
+    public void hide() {
+        stopClipboardAction();
+    }
+
+    public void startClipboardAction() {
+        if (_clipboardActionMode == null)
+            _textField.startActionMode(new ActionMode.Callback() {
+
+                @Override
+                public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+                    _clipboardActionMode = mode;
+                    mode.setTitle(android.R.string.selectTextMode);
+                    TypedArray array = _context.getTheme().obtainStyledAttributes(new int[]{
+                            android.R.attr.actionModeSelectAllDrawable,
+                            android.R.attr.actionModeCutDrawable,
+                            android.R.attr.actionModeCopyDrawable,
+                            android.R.attr.actionModePasteDrawable,
+                    });
+                    menu.add(0, 0, 0, _context.getString(android.R.string.selectAll))
+                            .setShowAsActionFlags(2)
+                            .setAlphabeticShortcut('a')
+                            .setIcon(array.getDrawable(0));
+
+                    menu.add(0, 1, 0, _context.getString(android.R.string.cut))
+                            .setShowAsActionFlags(2)
+                            .setAlphabeticShortcut('x')
+                            .setIcon(array.getDrawable(1));
+
+                    menu.add(0, 2, 0, _context.getString(android.R.string.copy))
+                            .setShowAsActionFlags(2)
+                            .setAlphabeticShortcut('c')
+                            .setIcon(array.getDrawable(2));
+
+                    menu.add(0, 3, 0, _context.getString(android.R.string.paste))
+                            .setShowAsActionFlags(2)
+                            .setAlphabeticShortcut('v')
+                            .setIcon(array.getDrawable(3));
+                    array.recycle();
+                    return true;
+                }
+
+                @Override
+                public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+                    return false;
+                }
+
+                @Override
+                public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+                    switch (item.getItemId()) {
+                        case 0:
+                            _textField.selectAll();
+                            break;
+                        case 1:
+                            _textField.cut(_cb);
+                            mode.finish();
+                            break;
+                        case 2:
+                            _textField.copy(_cb);
+                            mode.finish();
+                            break;
+                        case 3:
+                            _textField.paste(_cb.getText().toString());
+                            mode.finish();
+                    }
+                    return false;
+                }
+
+                @Override
+                public void onDestroyActionMode(ActionMode p1) {
+                    _textField.selectText(false);
+                    _clipboardActionMode = null;
+                }
+            });
+
+    }
+
+    @RequiresApi(Build.VERSION_CODES.M)
+    public void startClipboardActionNew() {
+        if (_clipboardActionMode == null)
+            _textField.startActionMode(_clipboardActionModeCallback2, ActionMode.TYPE_FLOATING);
+    }
+
+    @RequiresApi(Build.VERSION_CODES.M)
+    private void initData(){
+        _clipboardActionModeCallback2 = new ActionMode.Callback2() {
+            @Override
+            public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+                _clipboardActionMode = mode;
+                menu.add(0, 0, 0, _context.getString(android.R.string.selectAll))
+                        .setShowAsActionFlags(2)
+                        .setAlphabeticShortcut('a');
+                menu.add(0, 1, 0, _context.getString(android.R.string.cut))
+                        .setShowAsActionFlags(2)
+                        .setAlphabeticShortcut('x');
+                menu.add(0, 2, 0, _context.getString(android.R.string.copy))
+                        .setShowAsActionFlags(2)
+                        .setAlphabeticShortcut('c');
+                menu.add(0, 3, 0, _context.getString(android.R.string.paste))
+                        .setShowAsActionFlags(2)
+                        .setAlphabeticShortcut('v');
+                menu.add(0, 4, 0, "Delete")
+                        .setShowAsActionFlags(2)
+                        .setAlphabeticShortcut('d');
+                return true;
+            }
+
+            @Override
+            public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+                return false;
+            }
+
+            @Override
+            public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+                switch (item.getItemId()) {
+                    case 0:
+                        _textField.selectAll();
+                        break;
+                    case 1:
+                        _textField.cut(_cb);
+                        mode.finish();
+                        break;
+                    case 2:
+                        _textField.copy(_cb);
+                        mode.finish();
+                        break;
+                    case 3:
+                        _textField.paste(_cb.getText().toString());
+                        mode.finish();
+                    case 4:
+                        _textField.delete();
+                        mode.finish();
+                }
+                return false;
+
+
+            }
+
+            @Override
+            public void onDestroyActionMode(ActionMode p1) {
+                _textField.selectText(false);
+                _clipboardActionMode = null;
+                caret = null;
+            }
+
+            @Override
+            public void onGetContentRect(ActionMode mode, View view, Rect outRect){
+                caret = _textField.getBoundingBox(_textField.getCaretPosition());
+                int x = outRect.left + _textField.getPaddingLeft();
+                int y = outRect.bottom + _textField.getPaddingTop();
+                outRect = caret;
+                super.onGetContentRect(mode, view, outRect);
+            }
+        };
+
+    }
+
+    public void stopClipboardAction() {
+        if (_clipboardActionMode != null) {
+            //_clipboardActionModeCallback2.onDestroyActionMode(_clipboardActionMode);
+            _clipboardActionMode.finish();
+            _clipboardActionMode = null;
+
         }
     }
+
 }
